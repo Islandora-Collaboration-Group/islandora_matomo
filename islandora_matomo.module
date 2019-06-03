@@ -1,0 +1,524 @@
+<?php
+
+/**
+ * @file
+ * The main Piwik module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_matomo_menu() {
+  $items = [];
+  $items['admin/islandora/tools/piwik'] = [
+    'title' => 'Islandora Matomo',
+    'description' => 'Configure Islandora Matomo.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => ['islandora_matomo_admin_settings'],
+    'access arguments' => ['administer site configuration'],
+    'file' => 'includes/config.inc',
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  $items['admin/reports/islandora_matomo_reports'] = [
+    'title' => 'Islandora Matomo Reports',
+    'description' => 'Makes Matomo reports available to authorized users.',
+    'page callback' => 'islandora_matomo_reports',
+    'access arguments' => ['view islandora piwik reports'],
+    'file' => 'includes/reports.inc',
+    'type' => MENU_NORMAL_ITEM,
+  ];
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_matomo_permission() {
+  return [
+    'view islandora matomo reports' => [
+      'title' => t('View Islandora Matomo reports'),
+      'description' => t('View reports managed by the Islandora Matomo module'),
+    ],
+  ];
+}
+
+/**
+ * Returns the PIDs of all collections that the Islandora object belongs to.
+ *
+ * @param object $islandora_object
+ *   The Islandora object being inspected.
+ *
+ * @return array $collection_pids
+ *   A list of PIDS.
+ */
+function islandora_matomo_get_ancestor_collections($islandora_object) {
+  $collection_pids = [];
+  // islandora:is_member_of_collection property.
+  if ($islandora_object) {
+    $collections = $islandora_object->relationships->get(
+      FEDORA_RELS_EXT_URI,
+      'isMemberOfCollection'
+    );
+    // The root collection PID will be a member of 0 collections, so we need
+    // to check for it.
+    if (count($collections) > 0) {
+      foreach ($collections as $collection) {
+        $collection_pids[] = $collection['object']['value'];
+      }
+    }
+    else {
+      // If the object is a book page or a newspaper issue, query the RI
+      // to get its ancestor collection.
+      $object_cmodel_pids = $islandora_object->models;
+      $pid = $islandora_object->id;
+      if ($object_cmodel_pids[0] == 'islandora:newspaperIssueCModel'
+        || $object_cmodel_pids[0] == 'islandora:pageCModel') {
+        $query = <<<EOQ
+          select ?collection from <#ri> where {
+            # Get the collection that book pages and newspaper issues belong to.
+            <info:fedora/$pid> <fedora-rels-ext:isMemberOf> ?parent .
+            ?parent <fedora-rels-ext:isMemberOfCollection> ?collection .
+          }
+EOQ;
+        $connection = islandora_get_tuque_connection();
+        $results = $connection->repository->ri->sparqlQuery($query, 1);
+        if (count($results)) {
+          $collection_pids[] = $results[0]['collection']['value'];
+        }
+      }
+      // If the object is a newspaper page, query the RI to get the
+      // its ancestor collection.
+      if ($object_cmodel_pids[0] == 'islandora:newspaperPageCModel') {
+        $query = <<<EOQ
+          select ?collection from <#ri> where {
+            # Get the collection that newspaper pages belong to.
+            <info:fedora/$pid> <fedora-rels-ext:isMemberOf> ?issue .
+            ?issue <fedora-rels-ext:isMemberOf> ?newspaper .
+            ?newspaper <fedora-rels-ext:isMemberOfCollection> ?collection .
+          }
+EOQ;
+        $connection = islandora_get_tuque_connection();
+        $results = $connection->repository->ri->sparqlQuery($query, 1);
+        if (count($results)) {
+          $collection_pids[] = $results[0]['collection']['value'];
+        }
+      }
+    }
+    return $collection_pids;
+  }
+}
+
+/**
+ * Returns the PIDs via solr of all collections an Islandora object belongs to.
+ *
+ * @param object $islandora_object
+ *   The Islandora object being inspected.
+ *
+ * @return array $collection_pids
+ *   A list of PIDS.
+ */
+function islandora_matomo_get_ancestorviasolr_collections($islandora_object) {
+  module_load_include('inc', 'islandora_solr', 'query_processor');
+  $collection_pids = [];
+  // islandora:is_member_of_collection property.
+  if ($islandora_object) {
+    global $user;
+    $query_processor = new IslandoraSolrQueryProcessor();
+    $query = '*:*';
+    $query_processor->buildQuery($query);
+    // Todo make this solr field configurable.
+    $query_processor->solrParams['fl'] = 'PID, ancestors_ms';
+    $query_processor->solrParams['fq'][] = 'PID:' . "\"{$islandora_object->id}\"";
+    try {
+      $query_processor->executeQuery(FALSE);
+      $solr_results = $query_processor->islandoraSolrResult['response'];
+      if ($solr_results['numFound'] == 1) {
+        if (isset($solr_results['objects'][0]['solr_doc']['ancestors_ms'])) {
+          $collection_pids = (array) $solr_results['objects'][0]['solr_doc']['ancestors_ms'];
+        }
+      }
+    } catch (Exception $e) {
+      watchdog(
+        t(
+          'Islandora Matomo fetch Solr ancestors Error',
+          nl2br(check_plain($e->getMessage()))
+        ),
+        NULL,
+        WATCHDOG_WARNING
+      );
+    }
+  }
+  return $collection_pids;
+}
+
+
+/**
+ * Returns the Authors and Department for an Islandora Object.
+ *
+ * @param object $islandora_object
+ *   The Islandora object being inspected.
+ *
+ * @return array $dimensions
+ *   An associative array in the form of:
+ *    $dimensions['authors'] = array()
+ *    $dimensions['departments'] = array()
+ */
+function islandora_matomo_get_dimensionsviasolr($islandora_object) {
+  module_load_include('inc', 'islandora_solr', 'query_processor');
+  $dimensions = [];
+  // islandora:is_member_of_collection property.
+  if ($islandora_object) {
+    global $user;
+    $query_processor = new IslandoraSolrQueryProcessor();
+    $query = '*:*';
+    $query_processor->buildQuery($query);
+    // Todo make this solr field configurable.
+    $author_field = variable_get(
+      'islandora_matomo_author_solrfield',
+      'dc.author'
+    );
+    $department_field = variable_get(
+      'islandora_matomo_department_solrfield',
+      'dc.department'
+    );
+
+    $query_processor->solrParams['fl'] = "PID, {$author_field}, {$department_field}";
+    $query_processor->solrParams['fq'][] = 'PID:' . "\"{$islandora_object->id}\"";
+    try {
+      $query_processor->executeQuery(FALSE);
+      $solr_results = $query_processor->islandoraSolrResult['response'];
+
+      if ($solr_results['numFound'] == 1) {
+        if (isset($solr_results['objects'][0]['solr_doc'][$author_field])) {
+          $dimensions['authors'] = (array) $solr_results['objects'][0]['solr_doc'][$author_field];
+        }
+        if (isset($solr_results['objects'][0]['solr_doc'][$department_field])) {
+          $dimensions['departments'] = (array) $solr_results['objects'][0]['solr_doc'][$department_field];
+        }
+      }
+    } catch (Exception $e) {
+      watchdog(
+        t(
+          'Islandora Matomo fetch Solr Authors and Departments Error',
+          nl2br(check_plain($e->getMessage()))
+        ),
+        NULL,
+        WATCHDOG_WARNING
+      );
+    }
+  }
+  return $dimensions;
+}
+
+/**
+ * Returns the Matomo site ID to use for the current object using.
+ *
+ * @param object $islandora_object
+ *   The Islandora object being inspected.
+ *
+ * @return string $site_id
+ *   The site ID to use.
+ */
+function islandora_matomo_get_site_id($islandora_object) {
+  $general_site_id = variable_get('islandora_matomo_site_id', '1');
+  $collection_site_ids_setting = variable_get(
+    'islandora_matomo_collection_site_ids',
+    ''
+  );
+  // If there are no collection-specific site IDs, use the general one.
+  if (!strlen($collection_site_ids_setting)) {
+    return $general_site_id;
+  }
+  else {
+    $collection_ids = [];
+    $entries = array_filter(
+      preg_split('/\r\n|[\r\n]/', $collection_site_ids_setting)
+    );
+    foreach ($entries as &$entry) {
+      list($pid, $site_id) = explode(',', $entry);
+      $pid = trim($pid);
+      $collection_ids[$pid] = trim($site_id);
+    }
+  }
+
+  // If the object is a collection object, its PID might be in the
+  // list of collection-specific site IDs. Test this first since
+  // doing so is less expensive then the following operation.
+  if (array_key_exists($islandora_object->id, $collection_ids)) {
+    return $collection_ids[$islandora_object->id];
+  }
+  else {
+    return $general_site_id;
+  }
+}
+
+/**
+ * Returns the Matomo site ID to use for the current object using.
+ *
+ * @param string $pid
+ *   The Islandora object PID being inspected.
+ *
+ * @return array $site_ids
+ *   The PIWIK IDs to use for this PID.
+ */
+function islandora_matomo_get_site_ids_bypid($pid) {
+  $general_site_id = variable_get('islandora_matomo_site_id', '1');
+  $collection_site_ids_setting = variable_get(
+    'islandora_matomo_collection_site_ids',
+    ''
+  );
+  // If there are no collection-specific site IDs, use the general one.
+  if (!strlen(trim($collection_site_ids_setting))) {
+    return [$general_site_id];
+  }
+  else {
+    $collection_ids = [];
+    $entries = array_filter(
+      preg_split('/\r\n|[\r\n]/', $collection_site_ids_setting)
+    );
+    foreach ($entries as $entry) {
+      list($pid2, $site_id) = explode(',', $entry);
+      if ($pid == trim($pid2)) {
+        $collection_ids[] = trim($site_id);
+      }
+    }
+  }
+
+  // If the object is a collection object, its PID might be in the
+  // list of collection-specific site IDs. Test this first since
+  // doing so is less expensive then the following operation.
+  if (count($collection_ids) > 0) {
+    //Add also the default one to keep general track
+    $collection_ids[] = $general_site_id;
+    //In case of duplicates, remove
+    $collection_ids = array_unique($collection_ids);
+    return $collection_ids;
+  }
+  else {
+    return [$general_site_id];
+  }
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function islandora_matomo_page_alter(&$page) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  global $_islandora_solr_queryclass;
+
+  $matomo_url = rtrim(
+      variable_get('islandora_matomo_url', 'http://matomo.example.com'),
+      '/'
+    ) . '/';
+  $endpoint = $matomo_url . 'matomo.php';
+  $general_site_id = $siteId = variable_get('islandora_matomo_site_id', '1');
+
+  $script = "var _paq = window._paq || [];";
+  // Enables link tracking
+  $script .= "_paq.push(['alwaysUseSendBeacon']);";
+  $script .= "_paq.push(['enableLinkTracking']);";
+  $script .= "(function() {
+    var u='{$matomo_url}';
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', {$general_site_id}]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();";
+  $siteIds = [];
+  $script2 = '';
+  $script3 = '';
+  $inOtherIds = FALSE;
+  // Asume this will be true for all Solr Search pages.
+  if (!empty($_islandora_solr_queryclass)) {
+    // Searching in a particular collection?
+    // Cp? Could be anything since it is user provided data.
+    if (isset($_islandora_solr_queryclass->internalSolrParams['cp']) && islandora_is_valid_pid(
+        $_islandora_solr_queryclass->internalSolrParams['cp']
+      )) {
+      $object = islandora_object_load(
+        $_islandora_solr_queryclass->internalSolrParams['cp']
+      );
+      $collectionsearch = $_islandora_solr_queryclass->internalSolrParams['cp'];
+      $siteIds = is_object($object) ? islandora_matomo_get_site_ids_bypid(
+        $object->id
+      ) : [$general_site_id];
+    }
+    // Check if we are using facets.
+    $keywordlist = isset($_islandora_solr_queryclass->internalSolrParams['f']) ? (array) $_islandora_solr_queryclass->internalSolrParams['f'] : [];
+    array_unshift($keywordlist, $_islandora_solr_queryclass->solrQuery);
+    if (isset($collectionsearch)) {
+      array_unshift($keywordlist, $collectionsearch);
+    }
+    $searchtype = isset($_islandora_solr_queryclass->internalSolrParams['type']) ? $_islandora_solr_queryclass->internalSolrParams['type'] : 'advanced';
+    if ($searchtype == 'edismax' || $searchtype == 'dismax') {
+      $searchtype = "simple";
+    }
+    $keywords = urlencode(stripslashes(implode(' ', $keywordlist)));
+    $script .= "_paq.push(['trackSiteSearch',
+    \"{$keywords}\",
+    \"{$searchtype}\",
+     {$_islandora_solr_queryclass->islandoraSolrResult['response']['numFound']}
+    ]);";
+    foreach ($siteIds as $siteId) {
+      if ($siteId != $general_site_id) {
+        $inOtherIds = TRUE;
+        $script2 .= "var piwikTracker{$siteId} = Piwik.getTracker('{$endpoint}', {$siteId});";
+        $script2 .= "piwikTracker{$siteId}.trackSiteSearch(\"{$keywords}\",
+        \"{$searchtype}\",
+        {$_islandora_solr_queryclass->islandoraSolrResult['response']['numFound']});";
+      }
+    }
+    if ($inOtherIds) {
+      $script .= 'window.piwikAsyncInit = function () { try {';
+      $script .= $script2;
+      $script .= '} catch( err ) {console.log(err);}};';
+    }
+    drupal_add_js(
+      $script,
+      [
+        'type' => 'inline',
+        'scope' => 'header',
+        'weight' => 50,
+      ]
+    );
+  }
+  else {
+    if ((arg(0) == 'islandora') && (arg(1) == 'object')) {
+      $object = menu_get_object('islandora_object', 2);
+      if ($object) {
+        $collections = [];
+        $idtocollectionmapping = [];
+        // Record usage of the object's collection(s).
+        // Check first if the visited object is a collection,
+        // because it may not be in the list of ancestors
+        if (in_array('islandora:collectionCModel', $object->models)) {
+          $collections[] = $object->id;
+        }
+
+        $script3 .= 'window.piwikAsyncInit = function () { try {';
+        if (variable_get('islandora_matomo_track_collection_usage', 1)) {
+          $collections += islandora_matomo_get_ancestorviasolr_collections(
+            $object
+          );
+          foreach ($collections as $collection) {
+            // We don't want to count usage of the islandora:root collection.
+            if (($collection != 'islandora:root') && ($collection != 'islandora:featured_collection')) {
+              $siteIds2 = islandora_matomo_get_site_ids_bypid($collection);
+              foreach ($siteIds2 as $siteId2) {
+                $idtocollectionmapping[$siteId2][] = $collection;
+              }
+            }
+          }
+
+
+          foreach ($idtocollectionmapping as $siteId => $collectionpids) {
+            $script3 .= "var piwikTracker{$siteId} = Piwik.getTracker('{$endpoint}', {$siteId});";
+            $collectionpid_unique = array_unique($collectionpids);
+            // Tracks Dimension per Object ID
+            $script3 .= "piwikTracker{$siteId}.setCustomDimension(2, '{$object->id}');";
+            foreach ($collectionpid_unique as $collectionpid) {
+              $collectionpidURL = urlencode($collectionpid);
+              // Tracks Dimension per Collection Membership ID
+              $script3 .= "piwikTracker{$siteId}.setCustomDimension(1, '{$collectionpidURL}');";
+            }
+            $script3 .= "piwikTracker{$siteId}.trackPageView();";
+            $script3 .= "console.log('tracking site {$siteId}');";
+          }
+
+        }
+
+        // Track Author and Department Dimensions
+        $extradimensions = [];
+        $extradimensions += islandora_matomo_get_dimensionsviasolr($object);
+        // @TODO change to configurable
+        $siteIdForExtraDimension = 2;
+        $script3 .= "var piwikTracker{$siteIdForExtraDimension} = Piwik.getTracker('{$endpoint}', {$siteIdForExtraDimension});";
+        $script3 .= "piwikTracker{$siteIdForExtraDimension}.enableLinkTracking();";
+        if (isset($extradimensions['authors']) && !empty($extradimensions['authors'])) {
+            foreach ($extradimensions['authors'] as $author) {
+              $script2 .= "_paq.push(['trackEvent','Readership', 'Author', '{$author}']);";
+              $script3 .= "piwikTracker{$siteIdForExtraDimension}.setCustomDimension(3, '{$author}');";
+              $script3 .= "piwikTracker{$siteIdForExtraDimension}.trackPageView();";
+              $script3 .= "console.log('tracking author {$author}');";
+
+            }
+        }
+        if (isset($extradimensions['departments']) && !empty($extradimensions['departments'])) {
+          // Get rid of dimension 3 when starting tracking Dimension 4
+          $script3 .= "piwikTracker{$siteIdForExtraDimension}.deleteCustomDimension(3);";
+          foreach ($extradimensions['departments'] as $department) {
+
+            $script3 .= "piwikTracker{$siteIdForExtraDimension}.setCustomDimension(4, '{$department}');";
+            $script3 .= "piwikTracker{$siteIdForExtraDimension}.trackPageView();";
+          }
+        }
+
+        $script3 .= '} catch( err ) {console.log(err);}}';
+        $script .= $script2.$script3;
+        drupal_add_js(
+          $script,
+          [
+            'type' => 'inline',
+            'scope' => 'header',
+            'weight' => 50,
+          ]
+        );
+      }
+    }
+  }
+  if (arg(0) != 'islandora' && arg(1) != 'object' && isset($page['footer'])) {
+    $tracking_code = variable_get(
+      'islandora_matomo_javascript_tracking_code',
+      ''
+    );
+    $page['footer']['islandora_matomo']['#markup'] = $tracking_code;
+  }
+}
+
+/*
+**
+* Implements hook_theme().
+ */
+function islandora_matomo_theme($existing, $type, $theme, $path) {
+  return array(
+    'islandora_matomo_widget' => array(
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-matomo-widget',
+      'pattern' => 'islandora-matomo-widget__',
+      'variables' => array(
+        'pid' => NULL,
+      )
+    )
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function islandora_matomo_block_info() {
+  $blocks['matomo_object_widget'] = array(
+    'info' => t('Islandora Matomo Real time visitors widget'),
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages' => 'islandora/object/*',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function islandora_matomo_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'matomo_object_widget':
+      module_load_include('inc', 'islandora_matomo', 'includes/blocks');
+      $block['subject'] = NULL;
+      $block['content'] = islandora_matomo_widgetonobject_block();
+      break;
+    default:
+  }
+  return $block;
+}
+
+
