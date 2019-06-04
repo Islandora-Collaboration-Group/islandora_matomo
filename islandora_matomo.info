@@ -4,4 +4,4 @@ package = Islandora Tools
 version = 7.x-1.x
 core = 7.x
 dependencies[] = islandora
-dependencies[] = islandora_solr_search
+dependencies[] = islandora_solr
