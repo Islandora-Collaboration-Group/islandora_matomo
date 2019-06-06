@@ -26,14 +26,11 @@ function template_preprocess_islandora_matomo_widget(array &$variables) {
     ''
   );
 
-
-
-
   $link = '?module=Widgetize&action=iframe';
   $link .= '&disableLink=0&widget=1&moduleToWidgetize=UserCountryMap';
 
   $link2 = $link .'&actionToWidgetize=realtimeMap&idSite=' . $variables['matomo_site'];
-  $link2.= '&period=month&date=today&disableLink=1&widget=1&removeOldVisits=0&realtimeWindow=5';
+  $link2.= '&period=month&date=today&disableLink=1&widget=1&removeOldVisits=0';
 
   $link .= '&actionToWidgetize=visitorMap&idSite=' . $variables['matomo_site'];
   $link .= '&period=year&date=today&disableLink=1&widget=1';
