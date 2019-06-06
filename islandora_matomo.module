@@ -383,7 +383,10 @@ function islandora_matomo_page_alter(&$page) {
     );
   }
   else {
-    if ((arg(0) == 'islandora') && (arg(1) == 'object')) {
+    // Refactor to allow path alias
+    $path = current_path();
+    $path_args = explode('/', $path);
+    if (isset($path_args[0]) && $path_args[0] == 'islandora' && isset($path_args[1]) && $path_args[1] == 'object') {
       $object = menu_get_object('islandora_object', 2);
       if ($object) {
         $collections = [];
