@@ -21,10 +21,15 @@ function template_preprocess_islandora_matomo_widget(array &$variables) {
     'islandora_matomo_site_id',
     '1'
   );
-  $variables['matomo_token'] = $token_auth = variable_get(
-    'islandora_matomo_api_key',
-    ''
-  );
+
+  if (user_access('view islandora matomo reports')) {
+    $variables['matomo_token'] = $token_auth = variable_get(
+      'islandora_matomo_api_key',
+      ''
+    );
+  } else {
+    $variables['matomo_token'] = variable_get('islandora_matomo_widget_api_key', 'anonymous');
+  }
 
   $link = '?module=Widgetize&action=iframe';
   $link .= '&disableLink=0&widget=1&moduleToWidgetize=UserCountryMap';
