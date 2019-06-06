@@ -10,7 +10,7 @@
  */
 function islandora_matomo_menu() {
   $items = [];
-  $items['admin/islandora/tools/piwik'] = [
+  $items['admin/islandora/tools/matomo'] = [
     'title' => 'Islandora Matomo',
     'description' => 'Configure Islandora Matomo.',
     'page callback' => 'drupal_get_form',
@@ -23,7 +23,7 @@ function islandora_matomo_menu() {
     'title' => 'Islandora Matomo Reports',
     'description' => 'Makes Matomo reports available to authorized users.',
     'page callback' => 'islandora_matomo_reports',
-    'access arguments' => ['view islandora piwik reports'],
+    'access arguments' => ['view islandora matomo reports'],
     'file' => 'includes/reports.inc',
     'type' => MENU_NORMAL_ITEM,
   ];
