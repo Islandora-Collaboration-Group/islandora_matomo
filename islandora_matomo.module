@@ -410,7 +410,6 @@ function islandora_matomo_page_alter(&$page) {
             }
           }
 
-
           foreach ($idtocollectionmapping as $siteId => $collectionpids) {
             $script3 .= "var piwikTracker{$siteId} = Piwik.getTracker('{$endpoint}', {$siteId});";
             $collectionpid_unique = array_unique($collectionpids);
@@ -430,8 +429,8 @@ function islandora_matomo_page_alter(&$page) {
         // Track Author and Department Dimensions
         $extradimensions = [];
         $extradimensions += islandora_matomo_get_dimensionsviasolr($object);
-        // @TODO change to configurable
-        $siteIdForExtraDimension = 2;
+
+        $siteIdForExtraDimension = variable_get('islandora_matomo_moredimensions_site_id', '2');
         $script3 .= "var piwikTracker{$siteIdForExtraDimension} = Piwik.getTracker('{$endpoint}', {$siteIdForExtraDimension});";
         $script3 .= "piwikTracker{$siteIdForExtraDimension}.enableLinkTracking();";
         if (isset($extradimensions['authors']) && !empty($extradimensions['authors'])) {
@@ -440,7 +439,6 @@ function islandora_matomo_page_alter(&$page) {
               $script3 .= "piwikTracker{$siteIdForExtraDimension}.setCustomDimension(3, '{$author}');";
               $script3 .= "piwikTracker{$siteIdForExtraDimension}.trackPageView();";
               $script3 .= "console.log('tracking author {$author}');";
-
             }
         }
         if (isset($extradimensions['departments']) && !empty($extradimensions['departments'])) {
