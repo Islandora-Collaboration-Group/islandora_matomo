@@ -62,7 +62,7 @@ function  islandora_matomo_enable() {
     $instance = array(
       'field_name' => 'field_islandoramatomo_sendreport',
       'entity_type' => 'user',
-      'label' => 'Send Matomo Report via email every month.',
+      'label' => 'Send Islandora Matomo Report via email every month.',
       'bundle' => 'user',
       // If you don't set the "required" property then the field wont be required by default.
       'required' => TRUE,
@@ -83,6 +83,7 @@ function  islandora_matomo_enable() {
       'field_name' => 'field_islandoramatomo_userkey',
       'type' => 'text',
       'cardinality' => 1,
+      'max_length' => 64,
     );
     field_create_field($field2);
 
@@ -99,8 +100,12 @@ function  islandora_matomo_enable() {
         'user_register_form' => 0,
       ),
       'widget' => array(
-        'type' => 'options_buttons',
+        'type' => 'text_textfield',
       ),
+      'display' => array(
+        'default' => array(
+          'type' => 'text_default',
+        ),
       'weight' => '2',
     );
     field_create_instance($instance2);
