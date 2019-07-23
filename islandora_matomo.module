@@ -106,6 +106,7 @@ function  islandora_matomo_enable() {
         'default' => array(
           'type' => 'text_default',
         ),
+      ),
       'weight' => '2',
     );
     field_create_instance($instance2);
