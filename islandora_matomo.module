@@ -97,7 +97,8 @@ function  islandora_matomo_enable() {
       'required' => TRUE,
       'settings' => array(
         // Field showing up on the registration form.
-        'user_register_form' => 0,
+        // If 0 it will only show on edit. Ask @noah.
+        'user_register_form' => 1,
       ),
       'widget' => array(
         'type' => 'text_textfield',
