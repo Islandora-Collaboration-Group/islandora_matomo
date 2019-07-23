@@ -1,0 +1,35 @@
+<?PHP
+function islandora_matomo_update_7001(&$sandbox) {
+  // Gives the field field_islandoramatomo_userkey on existing users a default.
+  if (!isset($sandbox['progress'])) {
+    $sandbox['progress'] = 0;
+    $sandbox['current_uid'] = 0;
+    // We'll -1 to disregard the uid 0...
+    $sandbox['max'] = db_query('SELECT COUNT(DISTINCT uid) FROM {users}')->fetchField() - 1;
+  }
+
+  $users = db_select('users', 'u')
+    ->fields('u', array('uid', 'name'))
+    ->condition('uid', $sandbox['current_uid'], '>')
+    ->range(0, 10)
+    ->orderBy('uid', 'ASC')
+    ->execute();
+
+  foreach ($users as $user) {
+    db_update('users')
+      ->fields(array('field_islandoramatomo_userkey' => $user->name))
+      ->condition('uid', $user->uid)
+      ->execute();
+
+    $sandbox['progress']++;
+    $sandbox['current_uid'] = $user->uid;
+  }
+
+  $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+}
+
+function islandora_matomo_uninstall() {
+  field_delete_field('field_islandoramatomo_userkey');
+  field_delete_field('field_islandoramatomo_sendreport');
+}
+

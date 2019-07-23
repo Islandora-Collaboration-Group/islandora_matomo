@@ -27,8 +27,87 @@ function islandora_matomo_menu() {
     'file' => 'includes/reports.inc',
     'type' => MENU_NORMAL_ITEM,
   ];
+  $items['admin/reports/islandora_matomo_reports2'] = [
+    'title' => 'Islandora Matomo Reports Ajax',
+    'description' => 'Makes Matomo reports available to authorized users.',
+    'page callback' => 'drupal_get_form',
+    'file' => 'includes/reports.form.inc',
+    'page arguments' => array('islandora_matomo_report_form'),
+    'access arguments' => ['view islandora matomo reports'],
+    'type' => MENU_NORMAL_ITEM,
+  ];
   return $items;
 }
+
+/**
+ * Implements hook_enable().
+ */
+function  islandora_matomo_enable() {
+  // Check if this new send matomo report field is not already there.
+  if (!field_info_field('field_islandoramatomo_sendreport')) {
+    $field = array(
+      'field_name' => 'field_islandoramatomo_sendreport',
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'settings' => array(
+        'allowed_values' => array(
+          1 => 'Yes',
+          0 => 'No',
+        ),
+      ),
+    );
+    field_create_field($field);
+
+    // Create the instance on the bundle.
+    $instance = array(
+      'field_name' => 'field_islandoramatomo_sendreport',
+      'entity_type' => 'user',
+      'label' => 'Send Matomo Report via email every month.',
+      'bundle' => 'user',
+      // If you don't set the "required" property then the field wont be required by default.
+      'required' => TRUE,
+      'settings' => array(
+        // Field showing up on the registration form.
+        'user_register_form' => 1,
+      ),
+      'widget' => array(
+          'type' => 'options_buttons',
+      ),
+      'weight' => '1',
+    );
+    field_create_instance($instance);
+  }
+  // Check if this new u1 to drupal value field is not already there.
+  if (!field_info_field('field_islandoramatomo_userkey')) {
+    $field2 = array(
+      'field_name' => 'field_islandoramatomo_userkey',
+      'type' => 'text',
+      'cardinality' => 1,
+    );
+    field_create_field($field2);
+
+    // Create the instance on the bundle.
+    $instance2 = array(
+      'field_name' => 'field_islandoramatomo_userkey',
+      'entity_type' => 'user',
+      'label' => 'Value used to connect an Islandora Scholar Profile to this User account.',
+      'bundle' => 'user',
+      // If you don't set the "required" property then the field wont be required by default.
+      'required' => TRUE,
+      'settings' => array(
+        // Field showing up on the registration form.
+        'user_register_form' => 0,
+      ),
+      'widget' => array(
+        'type' => 'options_buttons',
+      ),
+      'weight' => '2',
+    );
+    field_create_instance($instance2);
+  }
+}
+
+
 
 /**
  * Implements hook_permission().
@@ -41,6 +120,32 @@ function islandora_matomo_permission() {
     ],
   ];
 }
+
+
+function islandora_matomo_user($op, &$edit, &$account, $category) {
+
+  switch ( $op ) {
+    case 'validate':
+      //$field_islandoramatomo_userkey = $account->
+      dpm($account);
+      dpm($edit);
+     /* $role_name = db_query('SELECT name FROM {role} WHERE rid = :rid', array(':rid' => $rid))->fetchField();
+    //retrieve the value for your field using Entity API
+    $wrapper = entity_metadata_wrapper('node', $node);
+    $value = $wrapper->field_collection->field_unique->value();
+
+    //Execute a count query to see if there's other similar values.
+    $query = new EntityFieldQuery;
+    $query->entityCondition('entity_type', 'field_collection_item')
+      ->fieldCondition('field_unique', 'value', $value)
+      ->count();
+    $count = $query->execute();
+    if ($count > 1) {
+      form_set_error('field_unique', 'Unique field value is already used.');
+    }*/
+  }
+}
+
 
 /**
  * Returns the PIDs of all collections that the Islandora object belongs to.
