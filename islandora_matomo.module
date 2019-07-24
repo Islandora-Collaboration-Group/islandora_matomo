@@ -675,8 +675,8 @@ function islandora_matomo_block_configure($delta='') {
 function islandora_matomo_block_save($delta = '', $edit = array()) {
   switch($delta) {
     case 'matomo_object_widget':
-      $enabled = array_filter($edit['values']['the_table']);
-      variable_set('islandora_embargo_content_models', $enabled);
+      $enabled = array_filter($edit['the_table']);
+      variable_set('islandora_matomo_report_enabled_content_models', $enabled);
       break;
   }
 }
