@@ -1,5 +1,12 @@
 <?PHP
 function islandora_matomo_update_7001(&$sandbox) {
+
+  $entity_type = 'user';
+  $bundle = 'user';
+  $field = 'field_islandoramatomo_userkey';
+  $field_info = field_info_field($field);
+  $field_keys = array($field_info['id']);
+
   // Gives the field field_islandoramatomo_userkey on existing users a default.
   if (!isset($sandbox['progress'])) {
     $sandbox['progress'] = 0;
@@ -16,16 +23,20 @@ function islandora_matomo_update_7001(&$sandbox) {
     ->execute();
 
   foreach ($users as $user) {
-    db_update('users')
-      ->fields(array('field_islandoramatomo_userkey' => $user->name))
-      ->condition('uid', $user->uid)
-      ->execute();
+    $userobject = user_load($user->uid);
+    $userobject->{$field}->[LANGUAGE_NONE][0]['value'] = $userobject->name;
+    field_sql_storage_field_storage_write('user', $userobject, 'update', $field_keys);
+
+    // Clear field cache
+    cache_clear_all("field:user:$user->uid", 'cache_field');
 
     $sandbox['progress']++;
     $sandbox['current_uid'] = $user->uid;
   }
 
   $sandbox['#finished'] = empty($sandbox['max']) ? 1 : ($sandbox['progress'] / $sandbox['max']);
+  $t = get_t();
+  return $t("Islandora Matomo updates updates on users complete");
 }
 
 function islandora_matomo_uninstall() {
