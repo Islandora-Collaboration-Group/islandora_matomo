@@ -5,6 +5,11 @@
  * The main Piwik module file.
  */
 
+define('ISLANDORA_PERSON_REPORT_VIEW_PERMISSION', 'view islandora matomo person report');
+define('ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION', 'view islandora matomo organization report');
+
+define('ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION','view islandora matomo reports');
+
 /**
  * Implements hook_menu().
  */
@@ -121,38 +126,20 @@ function  islandora_matomo_enable() {
  */
 function islandora_matomo_permission() {
   return [
-    'view islandora matomo reports' => [
+    ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION => [
       'title' => t('View Islandora Matomo reports'),
+      'description' => t('View reports managed by the Islandora Matomo module'),
+    ],
+    ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION => [
+      'title' => t('View Islandora Matomo by Organization reports'),
+      'description' => t('View reports managed by the Islandora Matomo module'),
+    ],
+    ISLANDORA_PERSON_REPORT_VIEW_PERMISSION => [
+      'title' => t('View Islandora Matomo by Person reports'),
       'description' => t('View reports managed by the Islandora Matomo module'),
     ],
   ];
 }
-
-
-function islandora_matomo_user($op, &$edit, &$account, $category) {
-
-  switch ( $op ) {
-    case 'validate':
-      //$field_islandoramatomo_userkey = $account->
-      dpm($account);
-      dpm($edit);
-     /* $role_name = db_query('SELECT name FROM {role} WHERE rid = :rid', array(':rid' => $rid))->fetchField();
-    //retrieve the value for your field using Entity API
-    $wrapper = entity_metadata_wrapper('node', $node);
-    $value = $wrapper->field_collection->field_unique->value();
-
-    //Execute a count query to see if there's other similar values.
-    $query = new EntityFieldQuery;
-    $query->entityCondition('entity_type', 'field_collection_item')
-      ->fieldCondition('field_unique', 'value', $value)
-      ->count();
-    $count = $query->execute();
-    if ($count > 1) {
-      form_set_error('field_unique', 'Unique field value is already used.');
-    }*/
-  }
-}
-
 
 /**
  * Returns the PIDs of all collections that the Islandora object belongs to.
@@ -625,13 +612,85 @@ function islandora_matomo_block_view($delta = '') {
   $block = array();
   switch ($delta) {
     case 'matomo_object_widget':
-      module_load_include('inc', 'islandora_matomo', 'includes/blocks');
-      $block['subject'] = NULL;
-      $block['content'] = islandora_matomo_widgetonobject_block();
+      $object = menu_get_object('islandora_object', 2);
+      if ($object) {
+        if (islandora_matomo_show_for_cmodel($object)) {
+          module_load_include('inc', 'islandora_matomo', 'includes/blocks');
+          $block['subject'] = NULL;
+          $block['content'] = islandora_matomo_widgetonobject_block($object);
+        }
+      }
       break;
     default:
   }
   return $block;
 }
+/**
+ * Implements hook_block_configure().
+ */
+function islandora_matomo_block_configure($delta='') {
+  $form = array();
 
+  switch($delta) {
+    case 'matomo_object_widget':
+      module_load_include('inc', 'islandora', 'includes/utilities');
+      $options = islandora_get_content_models();
+      $selected = variable_get('islandora_matomo_report_enabled_content_models', array('ir:citationCModel', 'ir:thesisCModel'));
+      foreach ($selected as $cmodel) {
+        if (isset($options[$cmodel])) {
+          $options = array($cmodel => $options[$cmodel]) + $options;
+        }
+      }
+      foreach ($options as $key => $value) {
+        $rows[$key] = array(
+          'pid' => $key,
+          'title' => $value['label'],
+        );
+        in_array($key, $selected) ? $defaults[$key] = TRUE : $defaults[$key] = FALSE;
+      }
+      $header = array(
+        'pid' => array('data' => t('PID')),
+        'title' => array('data' => t('Content Model')),
+      );
 
+      $form['intro'] = array(
+        '#type' => 'item',
+        '#title' => 'Select allowed Islandora Content Models.',
+        '#description' => t('Objects defined by selected Content Models will show this block.'),
+      );
+      $form['the_table'] = array(
+        '#type' => 'tableselect',
+        '#header' => $header,
+        '#options' => $rows,
+        '#default_value' => $defaults,
+      );
+
+      break;
+  }
+  return $form;
+}
+/*
+* Implements hook_block_save().
+ */
+function islandora_matomo_block_save($delta = '', $edit = array()) {
+  switch($delta) {
+    case 'matomo_object_widget':
+      $enabled = array_filter($edit['values']['the_table']);
+      variable_set('islandora_embargo_content_models', $enabled);
+      break;
+  }
+}
+
+/**
+* Determine if the object has an allowed Content model Object Matomo Report  Blocks.
+ *
+ * @param \AbstractObject $object
+*   The object we are viewing.
+ *
+ * @return bool
+  *   Whether $object has a content model to show badges for.
+ */
+function islandora_matomo_show_for_cmodel(AbstractObject $object) {
+  $show_cmodels = variable_get('islandora_matomo_report_enabled_content_models', array('ir:citationCModel', 'ir:thesisCModel'));
+  return (count(array_intersect($object->models, $show_cmodels)) > 0);
+}

@@ -25,7 +25,7 @@ function template_preprocess_islandora_matomo_widget(array &$variables) {
   if (user_access('view islandora matomo reports')) {
     $variables['matomo_token'] = $token_auth = variable_get(
       'islandora_matomo_api_key',
-      ''
+      NULL
     );
   } else {
     $variables['matomo_token'] = variable_get('islandora_matomo_widget_api_key', 'anonymous');

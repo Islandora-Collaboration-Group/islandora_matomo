@@ -31,7 +31,7 @@ function islandora_matomo_admin_settings() {
     '#maxlength' => 5,
   );
   $form['islandora_matomo_author_solrfield'] = array(
-    '#title' => t('Solr field containing a list of authors'),
+    '#title' => t('Solr field containing a list of authors. This applies for all objects except Scholar profiles.'),
     '#type' => 'textfield',
     '#size' => 128,
     '#autocomplete_path' => 'islandora_solr/autocomplete_luke',
@@ -40,11 +40,29 @@ function islandora_matomo_admin_settings() {
   );
 
   $form['islandora_matomo_department_solrfield'] = array(
-    '#title' => t('Solr field containing a list of departments'),
+    '#title' => t('Solr field containing a list of departments. This applies for all objects except Department Entities and Scholar profiles.'),
     '#type' => 'textfield',
     '#size' => 128,
     '#autocomplete_path' => 'islandora_solr/autocomplete_luke',
     '#default_value' => variable_get('islandora_matomo_department_solrfield', 'mods_identifier_u2_ms'),
+    '#maxlength' => 128,
+  );
+
+  $form['islandora_matomo_source_author_solrfield'] = array(
+    '#title' => t('Solr field containing a single author ID , e.g in a Scholar profile MADS record (Person CMODEL). Used to match Scholar Profiles to their Islandora Objects.'),
+    '#type' => 'textfield',
+    '#size' => 128,
+    '#autocomplete_path' => 'islandora_solr/autocomplete_luke',
+    '#default_value' => variable_get('islandora_matomo_source_author_solrfield', 'mads_u1_s'),
+    '#maxlength' => 128,
+  );
+
+  $form['islandora_matomo_source_department_solrfield'] = array(
+    '#title' => t('Solr field containing a single Department ID. e.g in a Department profile MADS record (Organization CMODEL). Used to match Departments to their Islandora Objects.'),
+    '#type' => 'textfield',
+    '#size' => 128,
+    '#autocomplete_path' => 'islandora_solr/autocomplete_luke',
+    '#default_value' => variable_get('islandora_matomo_source_department_solrfield', 'mads_u2_ms'),
     '#maxlength' => 128,
   );
 
