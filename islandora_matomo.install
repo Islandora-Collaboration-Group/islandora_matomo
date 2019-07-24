@@ -24,7 +24,7 @@ function islandora_matomo_update_7001(&$sandbox) {
 
   foreach ($users as $user) {
     $userobject = user_load($user->uid);
-    $userobject->{$field}->[LANGUAGE_NONE][0]['value'] = $userobject->name;
+    $userobject->{$field}[LANGUAGE_NONE][0]['value'] = $userobject->name;
     field_sql_storage_field_storage_write('user', $userobject, 'update', $field_keys);
 
     // Clear field cache
