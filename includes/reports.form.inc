@@ -27,7 +27,6 @@ function islandora_matomo_report_form($form, &$form_state) {
     $end_date = $date2->format('m/d/Y'); // 2012-02-29
     $diff = $date2->diff($date1)->format("%a");
   }
-  $matomo_date_start =
   $markup = <<<MARKUP
 <h3>Real-time map</h3>
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
@@ -192,7 +191,6 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
 
     //drupal_add_library('system', 'jquery.form');
     if (isset($form_state['values']['initial_date'])) {
-
       $initial_date = $form_state['values']['initial_date'];
       $end_date = $form_state['values']['end_date'];
       $date1 = new DateTime($initial_date);
@@ -201,7 +199,6 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
       $end_date_m =$date2->format('Y-m-d'); // 2012-02-01
       $start_date =  $date1->format('m/d/Y'); // 2012-02-01
       $end_date = $date2->format('m/d/Y'); // 2012-02-29
-
       $diff = $date2->diff($date1)->format("%a");
     }
 
