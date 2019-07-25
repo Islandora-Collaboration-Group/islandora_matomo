@@ -24,10 +24,13 @@ function islandora_matomo_user_notify($user, $pid, $userkey, $objectcount = 0) {
 
   $params['start_date'] = $month_ini->format('Y-m-d'); // 2012-02-01
   $params['end_date'] = $month_end->format('Y-m-d'); // 2012-02-01
-  $params['$objectcount']  = $objectcount;
+  $params['month'] =  $month_ini->format('F');
+  $params['year'] =  $month_ini->format('Y');
+  $params['objectcount']  = $objectcount;
 
   $data = islandora_matomo_fetch_remotejson($userkey, $params['start_date'],$params['end_date']);
   if (isset($data['reportTotal'])) {
+    $params['data'] = $data;
     $params['hits'] = isset ($data['reportTotal']['nb_hits']) ? $data['reportTotal']['nb_hits']:0;
   }
   if (!empty($params) && !empty($params['data'])) {

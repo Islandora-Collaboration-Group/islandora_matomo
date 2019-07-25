@@ -803,7 +803,7 @@ function islandora_matomo_mail($key, &$message, $params) {
   $upl = user_preferred_language($params['user']);
   $month = $params['month'];
   $year = $params['year'];
-  $numobjects = $params['object_count']; // query Solr for this.
+  $numobjects = $params['objectcount']; // query Solr for this.
   $matomo_actions = $params['hits'];
   $pid = $params['profile_pid']; // Make this the Scholar profile Object.
   /*
@@ -847,9 +847,10 @@ function islandora_matomo_mail($key, &$message, $params) {
   ), array('langcode' => $upl->language));
 
   $message['body'][]= t('This is an automatic e-mail from !sitename.',
-      array('!sitename' => variable_get('site_name', 'Drupal')), array('langcode' => $upl->language)) . "\n" .
-    $message['body'][] = t('To stop receiving these e-mails, change your Reader Ship notification preferences at !url', array(
+      array('!sitename' => variable_get('site_name', 'Drupal')), array('langcode' => $upl->language));
+
+  $message['body'][] = t('To stop receiving these e-mails, change your Reader Ship notification preferences at !url', array(
       '!url' => url('user/' . $useruid , array('absolute' => TRUE)),
-    ), array('langcode' => $upl->language));
+  ), array('langcode' => $upl->language));
 
 }
