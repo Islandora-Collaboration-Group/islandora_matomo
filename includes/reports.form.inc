@@ -205,11 +205,11 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
       $diff = $date2->diff($date1)->format("%a");
     }
     $diff = $diff +1;
+    // Leave this for CSS/HTML discussion <div id="htmlreport"><iframe width="100%" height="350" src="$index_page?expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=range&date=$start_date_m,$end_date_m&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>
+    //
     $markup = <<<MARKUP
 <h2>Report for a $diff days period</h2>
-<h3>Report</h3>
-<div id="htmlreport"><iframe width="100%" height="350" src="$index_page?expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=range&date=$start_date_m,$end_date_m&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>    
-    
+ 
 <h3>By Title</h3>
 <div id="widgetIframe3"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 

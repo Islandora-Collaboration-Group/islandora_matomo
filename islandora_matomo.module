@@ -782,10 +782,11 @@ function islandora_matomo_cron() {
   $results = $query->execute();
 
   foreach ($results as $key => $user) {
-    $key = $user->{$field}[LANGUAGE_NONE][0]['value'];
+    $realuser = user_load($user->uid);
+    $key = $realuser->{$field}[LANGUAGE_NONE][0]['value'];
     // Only process stats for users that have Objects and a Scholar Profile. If not why?
     if ((($pid = islandora_matomo_get_userprofile($key))!= NULL) && ($objectcount = islandora_matomo_get_objectcount_foruser($key))) {
-      islandora_matomo_user_notify($user, $pid, $key, $objectcount);
+      islandora_matomo_user_notify($realuser, $pid, $key, $objectcount);
     }
   }
 }
