@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Page callback that dumbly renders Piwik widget iframe markup.
- */
-
 function islandora_matomo_report_form($form, &$form_state) {
   $index_page = rtrim(variable_get('islandora_matomo_url', 'http://matomo.example.com'),'/') .'/index.php';
   $general_site_id = variable_get('islandora_matomo_site_id', '1');
@@ -21,7 +17,6 @@ function islandora_matomo_report_form($form, &$form_state) {
 
     $diff = $date2->diff($date1)->format("%a");
   }
-
 
   $markup = <<<MARKUP
 <h3>Real-time map</h3>

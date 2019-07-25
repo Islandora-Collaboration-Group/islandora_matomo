@@ -42,5 +42,6 @@ function islandora_matomo_update_7001(&$sandbox) {
 function islandora_matomo_uninstall() {
   field_delete_field('field_islandoramatomo_userkey');
   field_delete_field('field_islandoramatomo_sendreport');
+  field_delete_field('field_islandoramatomo_lastreport');
 }
 
