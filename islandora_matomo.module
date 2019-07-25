@@ -764,7 +764,7 @@ function islandora_matomo_show_for_cmodel(AbstractObject $object) {
 function islandora_matomo_cron() {
   if (!variable_get('islandora_matomo_send_emails', 1)) { return; }
 
-  module_load_include('inc', 'islandora_matomo', 'includes/mailer_utils.inc');
+  module_load_include('inc', 'islandora_matomo', 'includes/mailer_utils');
   $now = time();
   $lasttime = strtotime("-20DAYS", $now);
   $field = 'field_islandoramatomo_userkey';
