@@ -5,7 +5,13 @@ function islandora_matomo_report_form($form, &$form_state) {
   $general_site_id = variable_get('islandora_matomo_site_id', '1');
   $otherdimensions_site_id = variable_get('islandora_matomo_moredimensions_site_id', '2');
   $token_auth = variable_get('islandora_matomo_api_key', '');
-
+  $day_ini = new DateTime("today");
+  $day_end = new DateTime("yesterday");
+  $diff = $day_end->diff($day_ini)->format("%a");
+  $start_date =  $day_ini->format('m/d/Y'); // 2012-02-01
+  $end_date = $day_end->format('m/d/Y'); // 2012-02-29
+  $start_date_m = $day_ini->format('Y-m-d'); // 2012-02-01
+  $end_date_m =$day_end->format('Y-m-d'); // 2012-02-01
   //
   //drupal_add_library('system', 'jquery.form');
   if (isset($form_state['values']['initial_date'])) {
@@ -15,48 +21,54 @@ function islandora_matomo_report_form($form, &$form_state) {
     $date1 = new DateTime($initial_date);
     $date2 = new DateTime($end_date);
 
+    $start_date_m = $date1->format('Y-m-d'); // 2012-02-01
+    $end_date_m =$date2->format('Y-m-d'); // 2012-02-01
+    $start_date =  $date1->format('m/d/Y'); // 2012-02-01
+    $end_date = $date2->format('m/d/Y'); // 2012-02-29
     $diff = $date2->diff($date1)->format("%a");
   }
-
+  $matomo_date_start =
   $markup = <<<MARKUP
 <h3>Real-time map</h3>
-<div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=week&date=today&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Visitor map</h3>
-<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$general_site_id&period=week&date=today&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Web Pages</h3>
-<div id="widgetIframe3"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$general_site_id&period=week&date=today&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe3"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Islandora collection usage</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=1&idSite=$general_site_id&period=week&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=1&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Islandora Object usage</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$general_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Readership by Authors</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Readership by Departments</h3>
 <div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=4&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 
 <h3>Searches</h3>
-<div id="widgetIframe5"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchKeywords&idSite=$general_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe5"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Searches returning no results</h3>
-<div id="widgetIframe6"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchNoResultKeywords&idSite=$general_site_id&period=month&date=today&disableLink=0&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe6"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchNoResultKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=0&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 MARKUP;
 
   $form['initial_date'] = [
     '#type' => 'textfield',
     '#title' => 'Start Date',
     '#attributes' => array('class' => array('datepicker')),
+    '#default_value' => $start_date,
   ];
   $form['end_date'] = [
     '#type' => 'textfield',
     '#title' => 'End Date',
     '#attributes' => ['class' => array('datepicker')],
+    '#default_value' => $end_date,
   ];
   $form['submit'] = [
     '#type' => 'submit',
@@ -164,9 +176,9 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
   if ($object) {
     $month_ini = new DateTime("first day of last month");
     $month_end = new DateTime("last day of last month");
-
-    $start_date =  $month_ini->format('Y-m-d'); // 2012-02-01
-    $end_date = $month_end->format('Y-m-d'); // 2012-02-29
+    $diff = $month_end->diff($month_ini)->format("%a");
+    $start_date =  $month_ini->format('m/d/Y'); // 2012-02-01
+    $end_date = $month_end->format('m/d/Y'); // 2012-02-29
     $index_page = rtrim(
         variable_get('islandora_matomo_url', 'http://matomo.example.com'),
         '/'
@@ -185,29 +197,33 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
       $end_date = $form_state['values']['end_date'];
       $date1 = new DateTime($initial_date);
       $date2 = new DateTime($end_date);
+      $start_date_m = $date1->format('Y-m-d'); // 2012-02-01
+      $end_date_m =$date2->format('Y-m-d'); // 2012-02-01
+      $start_date =  $date1->format('m/d/Y'); // 2012-02-01
+      $end_date = $date2->format('m/d/Y'); // 2012-02-29
 
       $diff = $date2->diff($date1)->format("%a");
     }
 
     $markup = <<<MARKUP
-<h2>Report for $diff days</h2>
+<h2>Report for a $diff days period</h2>
 <h3>Report</h3>
 <div id="htmlreport"><iframe width="100%" height="350" src="$index_page?date=today&expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=month&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>    
     
 <h3>Real-time map for this Scholar</h3>
-<div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=week&date=today&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Visitor map</h3>
-<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=week&date=today&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Web Pages</h3>
-<div id="widgetIframe3"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=week&date=today&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe3"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Islandora Object usage</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Readership by Author</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 MARKUP;
 
     $form['initial_date'] = [
