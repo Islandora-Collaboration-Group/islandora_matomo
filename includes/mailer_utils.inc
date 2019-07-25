@@ -74,6 +74,7 @@ function islandora_matomo_get_userprofile($userkey) {
     $solr_results = $query_processor->islandoraSolrResult['response'];
     if ($solr_results['numFound'] > 0) {
       $PID = $solr_results['objects'][0]['solr_doc']['PID'];
+      dpm($PID);
     }
   } catch (Exception $e) {
     watchdog(

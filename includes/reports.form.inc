@@ -141,7 +141,8 @@ function _islandora_matomo_get_userprofile_bypid($pid) {
     $query_processor->executeQuery(FALSE);
     $solr_results = $query_processor->islandoraSolrResult['response'];
     if ($solr_results['numFound'] > 0) {
-      $key = $solr_results['objects'][0]['solr_doc'][$bindingfield];
+      //@TODO recheck this, could be single value instead of an array?
+      $key = $solr_results['objects'][0]['solr_doc'][$bindingfield][0];
     }
   } catch (Exception $e) {
     watchdog(
