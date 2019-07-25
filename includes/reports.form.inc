@@ -162,6 +162,11 @@ function _islandora_matomo_get_userprofile_bypid($pid) {
 
 function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObject $object) {
   if ($object) {
+    $month_ini = new DateTime("first day of last month");
+    $month_end = new DateTime("last day of last month");
+
+    $start_date =  $month_ini->format('Y-m-d'); // 2012-02-01
+    $end_date = $month_end->format('Y-m-d'); // 2012-02-29
     $index_page = rtrim(
         variable_get('islandora_matomo_url', 'http://matomo.example.com'),
         '/'
@@ -185,6 +190,7 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
     }
 
     $markup = <<<MARKUP
+<h2>Report for $diff days</h2>
 <h3>Report</h3>
 <div id="htmlreport"><iframe width="100%" height="350" src="$index_page?date=today&expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=month&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>    
     
@@ -208,11 +214,13 @@ MARKUP;
       '#type' => 'textfield',
       '#title' => 'Start Date',
       '#attributes' => ['class' => ['datepicker']],
+      '#default_value' => $start_date,
     ];
     $form['end_date'] = [
       '#type' => 'textfield',
       '#title' => 'End Date',
       '#attributes' => ['class' => ['datepicker']],
+      '#default_value' => $end_date,
     ];
     // Same submit as the previous one.
     $form['submit'] = [
