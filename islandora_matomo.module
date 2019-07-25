@@ -784,8 +784,8 @@ function islandora_matomo_cron() {
   foreach ($results as $key => $user) {
     $key = $user->{$field}[LANGUAGE_NONE][0]['value'];
     // Only process stats for users that have Objects and a Scholar Profile. If not why?
-    if ((($pid = islandora_matomo_get_userprofile($key))!= NULL) && islandora_matomo_get_objectcount_foruser($key)) {
-      islandora_matomo_user_notify($user,$pid);
+    if ((($pid = islandora_matomo_get_userprofile($key))!= NULL) && ($objectcount = islandora_matomo_get_objectcount_foruser($key))) {
+      islandora_matomo_user_notify($user, $pid, $key, $objectcount);
     }
   }
 }
@@ -802,10 +802,9 @@ function islandora_matomo_mail($key, &$message, $params) {
   $upl = user_preferred_language($params['user']);
   $month = $params['month'];
   $year = $params['year'];
-  $numobjects = 0; // query Solr for this.
-  $matomo_actions = 0;
+  $numobjects = $params['object_count']; // query Solr for this.
+  $matomo_actions = $params['hits'];
   $pid = $params['profile_pid']; // Make this the Scholar profile Object.
-
    /*
 
    Subject: Your [most recent month] readership report from [Repository name]
@@ -836,11 +835,11 @@ function islandora_matomo_mail($key, &$message, $params) {
   $message['body'][] = t('Here is your monthly readership report provided by !sitename', array(
     '!sitename' => $sitename
   ), array('langcode' => $upl->language));
-  $message['body'][] = t('As of !month, you have deposited !numobjects works in !sitename and your work has been accessed a total of !views times.', array(
+  $message['body'][] = t('As of !month, you have deposited !numobjects works in !sitename and your work has been accessed a total of !hits times.', array(
     '!month' => $month,
     '!numobjects' => $numobjects,
     '!sitename' => $sitename,
-    '!views' => $matomo_actions,
+    '!hits' => $matomo_actions,
   ), array('langcode' => $upl->language));
   $message['body'][] = t('Visit your \'!url\' to learn more about your readership.', array(
     '!url' => url('islandora/object/' . $pid . '/readership' , array('absolute' => TRUE)),
