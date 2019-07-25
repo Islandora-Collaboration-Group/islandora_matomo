@@ -33,7 +33,7 @@ function islandora_matomo_report_form($form, &$form_state) {
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Visitor map</h3>
-<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe2"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMapIslandora&actionToWidgetize=visitorMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Web Pages</h3>
 <div id="widgetIframe3"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
@@ -220,7 +220,7 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
 <div id="widgetIframe1"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Visitor map</h3>
-<div id="widgetIframe2"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe2"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMapIslandora&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 MARKUP;
 
