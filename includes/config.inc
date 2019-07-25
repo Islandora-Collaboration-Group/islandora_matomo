@@ -13,6 +13,14 @@ function islandora_matomo_admin_settings() {
     '#description' => t("Your Matomo instance's URL"),
     '#maxlength' => 255,
   );
+  $form['islandora_matomo_internal_url'] = array(
+    '#title' => t("Internal to this server Matomo API endpoint"),
+    '#type' => 'textfield',
+    '#size' => 60,
+    '#default_value' => variable_get('islandora_matomo_internal_url', 'https://isle-matomo-ld'),
+    '#description' => t("Your Matomo instance's URL as seen from your server. Normally the same as your first URL but can be different if running matomo in a non public facing instance like local docker."),
+    '#maxlength' => 255,
+  );
   $form['islandora_matomo_site_id'] = array(
     '#title' => t('Site ID'),
     '#type' => 'textfield',

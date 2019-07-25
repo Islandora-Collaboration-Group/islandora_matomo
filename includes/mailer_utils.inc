@@ -105,7 +105,7 @@ function islandora_matomo_get_userprofile($userkey) {
 function islandora_matomo_fetch_remotejson($userkey,$start_date,$end_date) {
   $data = [];
   $index_page = rtrim(
-      variable_get('islandora_matomo_url', 'http://matomo.example.com'),
+      variable_get('islandora_matomo_internal_url', 'https://isle-matomo-ld'),
       '/'
     ) . '/index.php';
   $otherdimensions_site_id = variable_get(
