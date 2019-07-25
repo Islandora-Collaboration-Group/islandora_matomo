@@ -178,6 +178,8 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
     $diff = $month_end->diff($month_ini)->format("%a");
     $start_date =  $month_ini->format('m/d/Y'); // 2012-02-01
     $end_date = $month_end->format('m/d/Y'); // 2012-02-29
+    $start_date_m = $month_ini->format('Y-m-d'); // 2012-02-01
+    $end_date_m =$month_end->format('Y-m-d'); // 2012-02-01
     $index_page = rtrim(
         variable_get('islandora_matomo_url', 'http://matomo.example.com'),
         '/'
