@@ -780,13 +780,18 @@ function islandora_matomo_cron() {
     ->propertyOrderBy('uid')
     ->addMetaData('account', user_load(1));
   $results = $query->execute();
-
-  foreach ($results as $key => $user) {
-    $realuser = user_load($user->uid);
-    $key = $realuser->{$field}[LANGUAGE_NONE][0]['value'];
-    // Only process stats for users that have Objects and a Scholar Profile. If not why?
-    if ((($pid = islandora_matomo_get_userprofile($key))!= NULL) && ($objectcount = islandora_matomo_get_objectcount_foruser($key))) {
-      islandora_matomo_user_notify($realuser, $pid, $key, $objectcount);
+  if (isset($results['user'])) {
+    foreach ($results['user'] as $key => $user) {
+      $realuser = user_load($user->uid);
+      $key = $realuser->{$field}[LANGUAGE_NONE][0]['value'];
+      // Only process stats for users that have Objects and a Scholar Profile. If not why?
+      if ((($pid = islandora_matomo_get_userprofile(
+            $key
+          )) != NULL) && ($objectcount = islandora_matomo_get_objectcount_foruser(
+          $key
+        ))) {
+        islandora_matomo_user_notify($realuser, $pid, $key, $objectcount);
+      }
     }
   }
 }
