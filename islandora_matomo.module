@@ -45,13 +45,11 @@ function islandora_matomo_menu() {
     'title' => 'Readership Dashboard',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('islandora_matomo_user_report_form',2),
+    'page arguments' => array('islandora_matomo_readershipreport_form',2),
     'access callback' => 'islandora_matomo_readership_access_callback',
     'access arguments' => array(2),
-    'file' => 'includes/utilities.inc',
+    'file' => 'includes/reports.inc',
   ];
-
-
 
   return $items;
 }
@@ -59,6 +57,8 @@ function islandora_matomo_menu() {
 function islandora_matomo_readership_access_callback(AbstractObject $object) {
   global $user;
   $fulluser = user_load($user->uid);
+  $access = islandora_object_access('view', $object);
+  return true;
   return user_access(ISLANDORA_PERSON_REPORT_VIEW_PERMISSION) || user_access(ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION);
 }
 
@@ -153,6 +153,9 @@ function  islandora_matomo_enable() {
         'default' => array(
           'type' => 'hidden'
         ),
+        'teaser' => array(
+          'type' => 'hidden'
+        )
       ),
       'label' => 'Value used to track last sent report for this user.',
       'bundle' => 'user',
@@ -173,6 +176,7 @@ function  islandora_matomo_enable() {
  */
 function islandora_matomo_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == "user_profile_form") {
+  // Hiddes the timestamp tracking field from input.
     $form['field_islandoramatomo_lastreport']['#access'] = 0;
   }
 }
