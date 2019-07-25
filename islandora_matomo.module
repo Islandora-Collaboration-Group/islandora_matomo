@@ -55,9 +55,7 @@ function islandora_matomo_menu() {
 }
 
 function islandora_matomo_readership_access_callback(AbstractObject $object) {
-  global $user;
-  $fulluser = user_load($user->uid);
-  return islandora_object_access('view', $object) && array_intersect($object->models,  array('islandora:personCModel')) &&
+  return islandora_object_access(ISLANDORA_VIEW_OBJECTS, $object) && array_intersect($object->models,  array('islandora:personCModel')) &&
     (user_access(ISLANDORA_PERSON_REPORT_VIEW_PERMISSION) || user_access(ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION));
 }
 
