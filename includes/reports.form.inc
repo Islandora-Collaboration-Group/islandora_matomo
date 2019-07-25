@@ -184,6 +184,9 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
     }
 
     $markup = <<<MARKUP
+<h3>Report</h3>
+<div id="htmlreport"><iframe width="100%" height="350" src="$index_page?date=today&expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=month&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>    
+    
 <h3>Real-time map for this Scholar</h3>
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=week&date=today&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
