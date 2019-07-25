@@ -45,10 +45,10 @@ function islandora_matomo_menu() {
     'title' => 'Readership Dashboard',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
+    'file' => 'includes/reports.form.inc',
     'page arguments' => array('islandora_matomo_readershipreport_form',2),
     'access callback' => 'islandora_matomo_readership_access_callback',
     'access arguments' => array(2),
-    'file' => 'includes/reports.inc',
   ];
 
   return $items;
