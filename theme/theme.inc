@@ -25,19 +25,19 @@ function template_preprocess_islandora_matomo_widget(array &$variables) {
   if (user_access('view islandora matomo reports')) {
     $variables['matomo_token'] = $token_auth = variable_get(
       'islandora_matomo_api_key',
-      ''
+      NULL
     );
   } else {
     $variables['matomo_token'] = variable_get('islandora_matomo_widget_api_key', 'anonymous');
   }
 
   $link = '?module=Widgetize&action=iframe';
-  $link .= '&disableLink=0&widget=1&moduleToWidgetize=UserCountryMap';
+  $link .= '&disableLink=0&widget=1';
 
-  $link2 = $link .'&actionToWidgetize=realtimeMap&idSite=' . $variables['matomo_site'];
+  $link2 = $link .'&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=' . $variables['matomo_site'];
   $link2.= '&period=month&date=today&disableLink=1&widget=1&removeOldVisits=0';
-
-  $link .= '&actionToWidgetize=visitorMap&idSite=' . $variables['matomo_site'];
+  //@TODO allow config to set which widget will be displayed, the islandora or the main one.
+  $link .= '&moduleToWidgetize=UserCountryMapIslandora&actionToWidgetize=visitorMap&idSite=' . $variables['matomo_site'];
   $link .= '&period=year&date=today&disableLink=1&widget=1';
 
   $object = islandora_object_load($variables['PID']);
