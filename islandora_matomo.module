@@ -58,8 +58,7 @@ function islandora_matomo_readership_access_callback(AbstractObject $object) {
   global $user;
   $fulluser = user_load($user->uid);
   return islandora_object_access('view', $object) && array_intersect($object->models,  array('islandora:personCModel')) &&
-  (user_access(ISLANDORA_PERSON_REPORT_VIEW_PERMISSION) || user_access(ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION));
-
+    (user_access(ISLANDORA_PERSON_REPORT_VIEW_PERMISSION) || user_access(ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION));
 }
 
 
@@ -95,7 +94,7 @@ function  islandora_matomo_enable() {
         'user_register_form' => 1,
       ),
       'widget' => array(
-          'type' => 'options_buttons',
+        'type' => 'options_buttons',
       ),
       'weight' => '1',
     );
@@ -145,8 +144,8 @@ function  islandora_matomo_enable() {
       'translatable' => FALSE,
     ];
     field_create_field($field3);
-  $instance3 = array(
-    'field_name' => 'field_islandoramatomo_lastreport',
+    $instance3 = array(
+      'field_name' => 'field_islandoramatomo_lastreport',
       'entity_type' => 'user',
       'no_ui' => TRUE,
       'display' => array(
@@ -176,7 +175,7 @@ function  islandora_matomo_enable() {
  */
 function islandora_matomo_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == "user_profile_form") {
-  // Hiddes the timestamp tracking field from input.
+    // Hiddes the timestamp tracking field from input.
     $form['field_islandoramatomo_lastreport']['#access'] = 0;
   }
 }
@@ -596,12 +595,12 @@ function islandora_matomo_page_alter(&$page) {
         $script3 .= "var piwikTracker{$siteIdForExtraDimension} = Piwik.getTracker('{$endpoint}', {$siteIdForExtraDimension});";
         $script3 .= "piwikTracker{$siteIdForExtraDimension}.enableLinkTracking();";
         if (isset($extradimensions['authors']) && !empty($extradimensions['authors'])) {
-            foreach ($extradimensions['authors'] as $author) {
-              $script2 .= "_paq.push(['trackEvent','Readership', 'Author', '{$author}']);";
-              $script3 .= "piwikTracker{$siteIdForExtraDimension}.setCustomDimension(3, '{$author}');";
-              $script3 .= "piwikTracker{$siteIdForExtraDimension}.trackPageView();";
-              $script3 .= "console.log('tracking author {$author}');";
-            }
+          foreach ($extradimensions['authors'] as $author) {
+            $script2 .= "_paq.push(['trackEvent','Readership', 'Author', '{$author}']);";
+            $script3 .= "piwikTracker{$siteIdForExtraDimension}.setCustomDimension(3, '{$author}');";
+            $script3 .= "piwikTracker{$siteIdForExtraDimension}.trackPageView();";
+            $script3 .= "console.log('tracking author {$author}');";
+          }
         }
         if (isset($extradimensions['departments']) && !empty($extradimensions['departments'])) {
           // Get rid of dimension 3 when starting tracking Dimension 4
@@ -742,13 +741,13 @@ function islandora_matomo_block_save($delta = '', $edit = array()) {
 }
 
 /**
-* Determine if the object has an allowed Content model Object Matomo Report Blocks.
+ * Determine if the object has an allowed Content model Object Matomo Report Blocks.
  *
  * @param \AbstractObject $object
-*   The object we are viewing.
+ *   The object we are viewing.
  *
  * @return bool
-  *   Whether $object has a content model to show badges for.
+ *   Whether $object has a content model to show badges for.
  */
 function islandora_matomo_show_for_cmodel(AbstractObject $object) {
   $show_cmodels = variable_get('islandora_matomo_report_enabled_content_models', array('ir:citationCModel', 'ir:thesisCModel'));
@@ -796,8 +795,6 @@ function islandora_matomo_cron() {
   }
 }
 
-
-
 /**
  * Implements hook_mail().
  */
@@ -811,21 +808,21 @@ function islandora_matomo_mail($key, &$message, $params) {
   $numobjects = $params['object_count']; // query Solr for this.
   $matomo_actions = $params['hits'];
   $pid = $params['profile_pid']; // Make this the Scholar profile Object.
-   /*
+  /*
 
-   Subject: Your [most recent month] readership report from [Repository name]
+  Subject: Your [most recent month] readership report from [Repository name]
 
-   Dear [ Jon Jon ],
+  Dear [ Jon Jon ],
 
-   Here is your monthly readership report provided by [Repository name]. Your work was accessed [x] times in [most recent month].
+  Here is your monthly readership report provided by [Repository name]. Your work was accessed [x] times in [most recent month].
 
-   As of [most recent month], you have deposited [x] works in [Repository Name] and your work has been accessed a total of [x] times.
+  As of [most recent month], you have deposited [x] works in [Repository Name] and your work has been accessed a total of [x] times.
 
-   Visit your [author dashboard] to learn more about your readership.
+  Visit your [author dashboard] to learn more about your readership.
 
-   [Contact Us] | [Unsubscribe] | Visit [Repository Name]
+  [Contact Us] | [Unsubscribe] | Visit [Repository Name]
 
-  */
+ */
 
 
   $message['headers']['MIME-Version'] = '1.0';
@@ -851,9 +848,9 @@ function islandora_matomo_mail($key, &$message, $params) {
     '!url' => url('islandora/object/' . $pid . '/readership' , array('absolute' => TRUE)),
   ), array('langcode' => $upl->language));
 
-   $message['body'][]= t('This is an automatic e-mail from !sitename.',
+  $message['body'][]= t('This is an automatic e-mail from !sitename.',
       array('!sitename' => variable_get('site_name', 'Drupal')), array('langcode' => $upl->language)) . "\n" .
-     $message['body'][] = t('To stop receiving these e-mails, change your Reader Ship notification preferences at !url', array(
+    $message['body'][] = t('To stop receiving these e-mails, change your Reader Ship notification preferences at !url', array(
       '!url' => url('user/' . $useruid , array('absolute' => TRUE)),
     ), array('langcode' => $upl->language));
 
