@@ -27,6 +27,7 @@ function islandora_matomo_report_form($form, &$form_state) {
     $end_date = $date2->format('m/d/Y'); // 2012-02-29
     $diff = $date2->diff($date1)->format("%a");
   }
+  $diff = $diff +1;
   $markup = <<<MARKUP
 <h3>Real-time map</h3>
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
@@ -203,7 +204,7 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
       $end_date = $date2->format('m/d/Y'); // 2012-02-29
       $diff = $date2->diff($date1)->format("%a");
     }
-
+    $diff = $diff +1;
     $markup = <<<MARKUP
 <h2>Report for a $diff days period</h2>
 <h3>Report</h3>
@@ -259,4 +260,11 @@ MARKUP;
     return $form;
   }
   return $form;
+}
+
+function islandora_matomo_readershipreport_form_submit(array $form, array &$form_state) {
+
+  $form_state['rebuild'] = TRUE;
+  return $form;
+
 }
