@@ -45,6 +45,9 @@ function islandora_matomo_report_form($form, &$form_state) {
   }
   $diff = $diff + 1;
   $markup = <<<MARKUP
+ <h3>Visits over time</h3> 
+ <div id="widgetIframe0"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&forceView=1&viewDataTable=graphEvolution&disableLink=0&widget=1&moduleToWidgetize=VisitsSummary&actionToWidgetize=getEvolutionGraph&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>  
+  
 <h3>Real-time map</h3>
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
@@ -287,6 +290,9 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
     // .
     $markup = <<<MARKUP
 <h2>Report for a $diff days period</h2>
+
+<h3>Visits over time</h3> 
+<div id="widgetIframe0"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&forceView=1&viewDataTable=graphEvolution&disableLink=0&widget=1&moduleToWidgetize=VisitsSummary&actionToWidgetize=getEvolutionGraph&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>  
  
 <h3>By Title</h3>
 <div id="widgetIframe1"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
