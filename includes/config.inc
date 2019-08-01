@@ -1,9 +1,13 @@
 <?php
+
 /**
  * @file
  * Form and utilities used in islandora_matomo configurations.
  */
 
+/**
+ * Matomo Admin Settings form.
+ */
 function islandora_matomo_admin_settings() {
   $form['islandora_matomo_url'] = array(
     '#title' => t("Matomo API endpoint"),
@@ -110,7 +114,7 @@ function islandora_matomo_admin_settings() {
     '#type' => 'textfield',
     '#size' => 40,
     '#default_value' => variable_get('islandora_matomo_widget_api_key', 'anonymous'),
-    '#description' => t("Your Matomo's API key (a.k.a. token_auth). Required to display embeded Matomo Widgets in each Object. It is available under any account with widget access on the Matomo server, in the API menu. Warning! Make sure you don't use a Full Super Admin account's token in production since that token could give full access to the API.If using 'anonymous' make sure to setup in matomo the 'view' privileges for that user"),
+    '#description' => t("Your Matomo's API key (a.k.a. token_auth). Required to display embedded Matomo Widgets in each Object. It is available under any account with widget access on the Matomo server, in the API menu. Warning! Make sure you don't use a Full Super Admin account's token in production since that token could give full access to the API.If using 'anonymous' make sure to setup in matomo the 'view' privileges for that user"),
     '#maxlength' => 40,
   );
   $form['islandora_matomo_javascript_tracking_code'] = array(

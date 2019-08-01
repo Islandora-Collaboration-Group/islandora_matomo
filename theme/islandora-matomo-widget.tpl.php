@@ -1,8 +1,8 @@
 <?php
+
 /**
  * @file
  * islandora-matomo-widget.tpl.php
- *
  */
 ?>
 <?php if ($matomo_token): ?>

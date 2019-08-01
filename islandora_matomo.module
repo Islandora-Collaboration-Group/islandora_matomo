@@ -5,9 +5,22 @@
  * The main Piwik module file.
  */
 
-define('ISLANDORA_PERSON_REPORT_VIEW_PERMISSION', 'view islandora matomo person report');
-define('ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION', 'view islandora matomo organization report');
-define('ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION','view islandora matomo reports');
+define(
+  'ISLANDORA_MATOMO_ISLANDORA_PERSON_REPORT_VIEW_PERMISSION',
+  'view islandora matomo person report'
+);
+define(
+  'ISLANDORA_MATOMO_ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION',
+  'view islandora matomo organization report'
+);
+define(
+  'ISLANDORA_MATOMO_ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION',
+  'view islandora matomo reports'
+);
+define(
+  'ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION',
+  'view islandora matomo usage'
+);
 
 /**
  * Implements hook_menu().
@@ -26,146 +39,56 @@ function islandora_matomo_menu() {
   $items['admin/reports/islandora_matomo_reports'] = [
     'title' => 'Islandora Matomo Reports',
     'description' => 'Makes Matomo reports available to authorized users.',
-    'page callback' => 'islandora_matomo_reports',
-    'access arguments' => ['view islandora matomo reports'],
-    'file' => 'includes/reports.inc',
-    'type' => MENU_NORMAL_ITEM,
-  ];
-  $items['admin/reports/islandora_matomo_reports2'] = [
-    'title' => 'Islandora Matomo Reports Ajax',
-    'description' => 'Makes Matomo reports available to authorized users.',
     'page callback' => 'drupal_get_form',
     'file' => 'includes/reports.form.inc',
-    'page arguments' => array('islandora_matomo_report_form'),
+    'page arguments' => ['islandora_matomo_report_form'],
     'access arguments' => ['view islandora matomo reports'],
     'type' => MENU_NORMAL_ITEM,
   ];
-
   $items['islandora/object/%islandora_object/readership'] = [
     'title' => 'Readership Dashboard',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
     'file' => 'includes/reports.form.inc',
-    'page arguments' => array('islandora_matomo_readershipreport_form',2),
+    'page arguments' => ['islandora_matomo_readershipreport_form', 2],
     'access callback' => 'islandora_matomo_readership_access_callback',
-    'access arguments' => array(2),
+    'access arguments' => [2],
+  ];
+  $items['islandora/object/%islandora_object/matomo_usage'] = [
+    'title' => 'Usage Statistics',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'islandora_matomo_page_empty',
+    'page arguments' => [2],
+    'access callback' => 'islandora_matomo_usage_access_callback',
+    'access arguments' => [2],
   ];
 
   return $items;
 }
 
+/**
+ * Access callback limiting to profile Objects and enabled permissions.
+ */
 function islandora_matomo_readership_access_callback(AbstractObject $object) {
-  return islandora_object_access(ISLANDORA_VIEW_OBJECTS, $object) && array_intersect($object->models,  array('islandora:personCModel')) &&
-    (user_access(ISLANDORA_PERSON_REPORT_VIEW_PERMISSION) || user_access(ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION));
+  return islandora_object_access(
+      ISLANDORA_VIEW_OBJECTS,
+      $object
+    ) && user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION);
 }
 
-
 /**
- * Implements hook_enable().
+ * Access callback for Usage reports.
  */
-function  islandora_matomo_enable() {
-  // Check if this new send matomo report field is not already there.
-  if (!field_info_field('field_islandoramatomo_sendreport')) {
-    $field = array(
-      'field_name' => 'field_islandoramatomo_sendreport',
-      'type' => 'list_boolean',
-      'cardinality' => 1,
-      'settings' => array(
-        'allowed_values' => array(
-          1 => 'Yes',
-          0 => 'No',
-        ),
-      ),
-    );
-    field_create_field($field);
-
-    // Create the instance on the bundle.
-    $instance = array(
-      'field_name' => 'field_islandoramatomo_sendreport',
-      'entity_type' => 'user',
-      'label' => 'Send Islandora Matomo Report via email every month.',
-      'bundle' => 'user',
-      // If you don't set the "required" property then the field wont be required by default.
-      'required' => TRUE,
-      'settings' => array(
-        // Field showing up on the registration form.
-        'user_register_form' => 1,
-      ),
-      'widget' => array(
-        'type' => 'options_buttons',
-      ),
-      'weight' => '1',
-    );
-    field_create_instance($instance);
-  }
-  // Check if this new u1 to drupal value field is not already there.
-  if (!field_info_field('field_islandoramatomo_userkey')) {
-    $field2 = [
-      'field_name' => 'field_islandoramatomo_userkey',
-      'type' => 'text',
-      'cardinality' => 1,
-      'max_length' => 64,
-    ];
-    field_create_field($field2);
-    // @TODO there could be security concern here.
-    // If a user can change its own userkey and access via that to another dashboard?
-    // Create the instance on the bundle.
-    $instance2 = [
-      'field_name' => 'field_islandoramatomo_userkey',
-      'entity_type' => 'user',
-      'label' => 'Value used to connect an Islandora Scholar Profile to this User account.',
-      'bundle' => 'user',
-      // If you don't set the "required" property then the field wont be required by default.
-      'required' => TRUE,
-      'settings' => [
-        // Field showing up on the registration form.
-        // If 0 it will only show on edit. Ask @noah.
-        'user_register_form' => 1,
-      ],
-      'widget' => [
-        'type' => 'text_textfield',
-      ],
-      'display' => [
-        'default' => [
-          'type' => 'text_default',
-        ],
-      ],
-      'weight' => '2',
-    ];
-    field_create_instance($instance2);
-  }
-  if (!field_info_field('field_islandoramatomo_lastreport')) {
-    $field3 = [
-      'field_name' => 'field_islandoramatomo_lastreport',
-      'type' => 'number_integer',
-      'cardinality' => 1,
-      'translatable' => FALSE,
-    ];
-    field_create_field($field3);
-    $instance3 = array(
-      'field_name' => 'field_islandoramatomo_lastreport',
-      'entity_type' => 'user',
-      'no_ui' => TRUE,
-      'display' => array(
-        'default' => array(
-          'type' => 'hidden'
-        ),
-        'teaser' => array(
-          'type' => 'hidden'
-        )
-      ),
-      'label' => 'Value used to track last sent report for this user.',
-      'bundle' => 'user',
-      // If you don't set the "required" property then the field wont be required by default.
-      'settings' => array(
-        // Field showing up on the registration form.
-        // If 0 it will only show on edit. Ask @noah.
-        'user_register_form' => 0,
-      ),
-      'weight' => '3',
-    );
-    field_create_instance($instance3);
-  }
+function islandora_matomo_usage_access_callback(AbstractObject $object) {
+  return islandora_object_access(
+      ISLANDORA_VIEW_OBJECTS,
+      $object
+    ) && array_intersect($object->models, ['islandora:personCModel']) &&
+    (user_access(
+        ISLANDORA_MATOMO_ISLANDORA_PERSON_REPORT_VIEW_PERMISSION
+      ) || user_access(
+        ISLANDORA_MATOMO_ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION
+      ));
 }
 
 /**
@@ -173,7 +96,7 @@ function  islandora_matomo_enable() {
  */
 function islandora_matomo_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == "user_profile_form") {
-    // Hiddes the timestamp tracking field from input.
+    // Hides the timestamp tracking field from input.
     $form['field_islandoramatomo_lastreport']['#access'] = 0;
   }
 }
@@ -183,19 +106,37 @@ function islandora_matomo_form_alter(&$form, $form_state, $form_id) {
  */
 function islandora_matomo_permission() {
   return [
-    ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION => [
+    ISLANDORA_MATOMO_ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION => [
       'title' => t('View Islandora Matomo reports'),
       'description' => t('View reports managed by the Islandora Matomo module'),
     ],
-    ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION => [
+    ISLANDORA_MATOMO_ISLANDORA_ORGANIZATION_REPORT_VIEW_PERMISSION => [
       'title' => t('View Islandora Matomo by Organization reports'),
       'description' => t('View reports managed by the Islandora Matomo module'),
     ],
-    ISLANDORA_PERSON_REPORT_VIEW_PERMISSION => [
+    ISLANDORA_MATOMO_ISLANDORA_PERSON_REPORT_VIEW_PERMISSION => [
       'title' => t('View Islandora Matomo by Person reports'),
       'description' => t('View reports managed by the Islandora Matomo module'),
     ],
+    ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION => [
+      'title' => t('View Islandora Usage Stats on each Object'),
+      'description' => t(
+        'View usage stats widgets managed by the Islandora Matomo module'
+      ),
+    ],
   ];
+}
+
+/**
+ * Empty Page callback's returnin an empty content.
+ *
+ * @return string
+ *   Just an Empty.
+ */
+function islandora_matomo_page_empty() {
+  // Return at least an empty. People will have to setup blocks here.
+  // @see \islandora_matomo_block_info
+  return ' ';
 }
 
 /**
@@ -204,7 +145,7 @@ function islandora_matomo_permission() {
  * @param object $islandora_object
  *   The Islandora object being inspected.
  *
- * @return array $collection_pids
+ * @return array
  *   A list of PIDS.
  */
 function islandora_matomo_get_ancestor_collections($islandora_object) {
@@ -270,7 +211,7 @@ EOQ;
  * @param object $islandora_object
  *   The Islandora object being inspected.
  *
- * @return array $collection_pids
+ * @return array
  *   A list of PIDS.
  */
 function islandora_matomo_get_ancestorviasolr_collections($islandora_object) {
@@ -293,7 +234,8 @@ function islandora_matomo_get_ancestorviasolr_collections($islandora_object) {
           $collection_pids = (array) $solr_results['objects'][0]['solr_doc']['ancestors_ms'];
         }
       }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       watchdog(
         t(
           'Islandora Matomo fetch Solr ancestors Error',
@@ -307,14 +249,13 @@ function islandora_matomo_get_ancestorviasolr_collections($islandora_object) {
   return $collection_pids;
 }
 
-
 /**
  * Returns the Authors and Department for an Islandora Object.
  *
  * @param object $islandora_object
  *   The Islandora object being inspected.
  *
- * @return array $dimensions
+ * @return array
  *   An associative array in the form of:
  *    $dimensions['authors'] = array()
  *    $dimensions['departments'] = array()
@@ -352,7 +293,8 @@ function islandora_matomo_get_dimensionsviasolr($islandora_object) {
           $dimensions['departments'] = (array) $solr_results['objects'][0]['solr_doc'][$department_field];
         }
       }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       watchdog(
         t(
           'Islandora Matomo fetch Solr Authors and Departments Error',
@@ -372,7 +314,7 @@ function islandora_matomo_get_dimensionsviasolr($islandora_object) {
  * @param object $islandora_object
  *   The Islandora object being inspected.
  *
- * @return string $site_id
+ * @return string
  *   The site ID to use.
  */
 function islandora_matomo_get_site_id($islandora_object) {
@@ -414,7 +356,7 @@ function islandora_matomo_get_site_id($islandora_object) {
  * @param string $pid
  *   The Islandora object PID being inspected.
  *
- * @return array $site_ids
+ * @return array
  *   The PIWIK IDs to use for this PID.
  */
 function islandora_matomo_get_site_ids_bypid($pid) {
@@ -444,9 +386,9 @@ function islandora_matomo_get_site_ids_bypid($pid) {
   // list of collection-specific site IDs. Test this first since
   // doing so is less expensive then the following operation.
   if (count($collection_ids) > 0) {
-    //Add also the default one to keep general track
+    // Add also the default one to keep general track.
     $collection_ids[] = $general_site_id;
-    //In case of duplicates, remove
+    // In case of duplicates, remove.
     $collection_ids = array_unique($collection_ids);
     return $collection_ids;
   }
@@ -470,7 +412,7 @@ function islandora_matomo_page_alter(&$page) {
   $general_site_id = $siteId = variable_get('islandora_matomo_site_id', '1');
 
   $script = "var _paq = window._paq || [];";
-  // Enables link tracking
+  // Enables link tracking.
   $script .= "_paq.push(['alwaysUseSendBeacon']);";
   $script .= "_paq.push(['enableLinkTracking']);";
   $script .= "(function() {
@@ -484,7 +426,7 @@ function islandora_matomo_page_alter(&$page) {
   $script2 = '';
   $script3 = '';
   $inOtherIds = FALSE;
-  // Asume this will be true for all Solr Search pages.
+  // Assume this will be true for all Solr Search pages.
   if (!empty($_islandora_solr_queryclass)) {
     // Searching in a particular collection?
     // Cp? Could be anything since it is user provided data.
@@ -539,7 +481,7 @@ function islandora_matomo_page_alter(&$page) {
     );
   }
   else {
-    // Refactor to allow path alias
+    // Refactor to allow path alias.
     $path = current_path();
     $path_args = explode('/', $path);
     if (isset($path_args[0]) && $path_args[0] == 'islandora' && isset($path_args[1]) && $path_args[1] == 'object') {
@@ -549,7 +491,7 @@ function islandora_matomo_page_alter(&$page) {
         $idtocollectionmapping = [];
         // Record usage of the object's collection(s).
         // Check first if the visited object is a collection,
-        // because it may not be in the list of ancestors
+        // because it may not be in the list of ancestors.
         if (in_array('islandora:collectionCModel', $object->models)) {
           $collections[] = $object->id;
         }
@@ -572,11 +514,11 @@ function islandora_matomo_page_alter(&$page) {
           foreach ($idtocollectionmapping as $siteId => $collectionpids) {
             $script3 .= "var piwikTracker{$siteId} = Piwik.getTracker('{$endpoint}', {$siteId});";
             $collectionpid_unique = array_unique($collectionpids);
-            // Tracks Dimension per Object ID
+            // Tracks Dimension per Object ID.
             $script3 .= "piwikTracker{$siteId}.setCustomDimension(2, '{$object->id}');";
             foreach ($collectionpid_unique as $collectionpid) {
               $collectionpidURL = urlencode($collectionpid);
-              // Tracks Dimension per Collection Membership ID
+              // Tracks Dimension per Collection Membership ID.
               $script3 .= "piwikTracker{$siteId}.setCustomDimension(1, '{$collectionpidURL}');";
             }
             $script3 .= "piwikTracker{$siteId}.trackPageView();";
@@ -585,11 +527,14 @@ function islandora_matomo_page_alter(&$page) {
 
         }
 
-        // Track Author and Department Dimensions
+        // Track Author and Department Dimensions.
         $extradimensions = [];
         $extradimensions += islandora_matomo_get_dimensionsviasolr($object);
 
-        $siteIdForExtraDimension = variable_get('islandora_matomo_moredimensions_site_id', '2');
+        $siteIdForExtraDimension = variable_get(
+          'islandora_matomo_moredimensions_site_id',
+          '2'
+        );
         $script3 .= "var piwikTracker{$siteIdForExtraDimension} = Piwik.getTracker('{$endpoint}', {$siteIdForExtraDimension});";
         $script3 .= "piwikTracker{$siteIdForExtraDimension}.enableLinkTracking();";
         if (isset($extradimensions['authors']) && !empty($extradimensions['authors'])) {
@@ -601,7 +546,7 @@ function islandora_matomo_page_alter(&$page) {
           }
         }
         if (isset($extradimensions['departments']) && !empty($extradimensions['departments'])) {
-          // Get rid of dimension 3 when starting tracking Dimension 4
+          // Get rid of dimension 3 when starting tracking Dimension 4.
           $script3 .= "piwikTracker{$siteIdForExtraDimension}.deleteCustomDimension(3);";
           foreach ($extradimensions['departments'] as $department) {
             $script3 .= "console.log('tracking department {$department}');";
@@ -611,7 +556,7 @@ function islandora_matomo_page_alter(&$page) {
         }
 
         $script3 .= '} catch( err ) {console.log(err);}}';
-        $script .= $script2.$script3;
+        $script .= $script2 . $script3;
         drupal_add_js(
           $script,
           [
@@ -632,33 +577,32 @@ function islandora_matomo_page_alter(&$page) {
   }
 }
 
-/*
-**
-* Implements hook_theme().
+/**
+ * Implements hook_theme().
  */
 function islandora_matomo_theme($existing, $type, $theme, $path) {
-  return array(
-    'islandora_matomo_widget' => array(
+  return [
+    'islandora_matomo_widget' => [
       'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-matomo-widget',
       'pattern' => 'islandora-matomo-widget__',
-      'variables' => array(
+      'variables' => [
         'pid' => NULL,
-      )
-    )
-  );
+      ],
+    ],
+  ];
 }
 
 /**
  * Implements hook_block_info().
  */
 function islandora_matomo_block_info() {
-  $blocks['matomo_object_widget'] = array(
+  $blocks['matomo_object_widget'] = [
     'info' => t('Islandora Matomo Real time visitors widget'),
     'visibility' => BLOCK_VISIBILITY_LISTED,
     'pages' => 'islandora/object/*',
     'cache' => DRUPAL_NO_CACHE,
-  );
+  ];
   return $blocks;
 }
 
@@ -666,7 +610,7 @@ function islandora_matomo_block_info() {
  * Implements hook_block_view().
  */
 function islandora_matomo_block_view($delta = '') {
-  $block = array();
+  $block = [];
   switch ($delta) {
     case 'matomo_object_widget':
       $object = menu_get_object('islandora_object', 2);
@@ -678,59 +622,70 @@ function islandora_matomo_block_view($delta = '') {
         }
       }
       break;
+
     default:
   }
   return $block;
 }
+
 /**
  * Implements hook_block_configure().
  */
-function islandora_matomo_block_configure($delta='') {
-  $form = array();
+function islandora_matomo_block_configure($delta = '') {
+  $form = [];
 
-  switch($delta) {
+  switch ($delta) {
     case 'matomo_object_widget':
       module_load_include('inc', 'islandora', 'includes/utilities');
       $options = islandora_get_content_models();
-      $selected = variable_get('islandora_matomo_report_enabled_content_models', array('ir:citationCModel', 'ir:thesisCModel'));
+      $selected = variable_get(
+        'islandora_matomo_report_enabled_content_models',
+        ['ir:citationCModel', 'ir:thesisCModel']
+      );
       foreach ($selected as $cmodel) {
         if (isset($options[$cmodel])) {
-          $options = array($cmodel => $options[$cmodel]) + $options;
+          $options = [$cmodel => $options[$cmodel]] + $options;
         }
       }
       foreach ($options as $key => $value) {
-        $rows[$key] = array(
+        $rows[$key] = [
           'pid' => $key,
           'title' => $value['label'],
-        );
-        in_array($key, $selected) ? $defaults[$key] = TRUE : $defaults[$key] = FALSE;
+        ];
+        in_array(
+          $key,
+          $selected
+        ) ? $defaults[$key] = TRUE : $defaults[$key] = FALSE;
       }
-      $header = array(
-        'pid' => array('data' => t('PID')),
-        'title' => array('data' => t('Content Model')),
-      );
+      $header = [
+        'pid' => ['data' => t('PID')],
+        'title' => ['data' => t('Content Model')],
+      ];
 
-      $form['intro'] = array(
+      $form['intro'] = [
         '#type' => 'item',
         '#title' => 'Select allowed Islandora Content Models.',
-        '#description' => t('Objects defined by selected Content Models will show this block. The block "Pages" configuration can limit this option further.'),
-      );
-      $form['the_table'] = array(
+        '#description' => t(
+          'Objects defined by selected Content Models will show this block. The block "Pages" configuration can limit this option further.'
+        ),
+      ];
+      $form['the_table'] = [
         '#type' => 'tableselect',
         '#header' => $header,
         '#options' => $rows,
         '#default_value' => $defaults,
-      );
+      ];
 
       break;
   }
   return $form;
 }
-/*
-* Implements hook_block_save().
+
+/**
+ * Implements hook_block_save().
  */
-function islandora_matomo_block_save($delta = '', $edit = array()) {
-  switch($delta) {
+function islandora_matomo_block_save($delta = '', $edit = []) {
+  switch ($delta) {
     case 'matomo_object_widget':
       $enabled = array_filter($edit['the_table']);
       variable_set('islandora_matomo_report_enabled_content_models', $enabled);
@@ -739,7 +694,7 @@ function islandora_matomo_block_save($delta = '', $edit = array()) {
 }
 
 /**
- * Determine if the object has an allowed Content model Object Matomo Report Blocks.
+ * Determine if the object has allowed CMODEL Object.
  *
  * @param \AbstractObject $object
  *   The object we are viewing.
@@ -748,10 +703,12 @@ function islandora_matomo_block_save($delta = '', $edit = array()) {
  *   Whether $object has a content model to show badges for.
  */
 function islandora_matomo_show_for_cmodel(AbstractObject $object) {
-  $show_cmodels = variable_get('islandora_matomo_report_enabled_content_models', array('ir:citationCModel', 'ir:thesisCModel'));
+  $show_cmodels = variable_get(
+    'islandora_matomo_report_enabled_content_models',
+    ['ir:citationCModel', 'ir:thesisCModel']
+  );
   return (count(array_intersect($object->models, $show_cmodels)) > 0);
 }
-
 
 /**
  * Implements hook_cron().
@@ -759,7 +716,9 @@ function islandora_matomo_show_for_cmodel(AbstractObject $object) {
  * Gets all users that want a matomo report and send them a gist via email.
  */
 function islandora_matomo_cron() {
-  if (!variable_get('islandora_matomo_send_emails', 1)) { return; }
+  if (!variable_get('islandora_matomo_send_emails', 1)) {
+    return;
+  }
 
   module_load_include('inc', 'islandora_matomo', 'includes/mailer_utils');
   $now = time();
@@ -767,13 +726,17 @@ function islandora_matomo_cron() {
   $field = 'field_islandoramatomo_userkey';
 
   // Force the query to run as user 1 so we have full access to fields.
-
   $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type','user')
+  $query->entityCondition('entity_type', 'user')
     ->entityCondition('bundle', 'user')
     ->fieldCondition($field, 'value', 'NULL', '<>')
-    ->fieldCondition('field_islandoramatomo_sendreport','value',1,'=')
-    ->fieldCondition('field_islandoramatomo_lastreport','value',$lasttime,'<')
+    ->fieldCondition('field_islandoramatomo_sendreport', 'value', 1, '=')
+    ->fieldCondition(
+      'field_islandoramatomo_lastreport',
+      'value',
+      $lasttime,
+      '<'
+    )
     ->propertyOrderBy('uid')
     ->addMetaData('account', user_load(1));
   $results = $query->execute();
@@ -781,12 +744,12 @@ function islandora_matomo_cron() {
     foreach ($results['user'] as $key => $user) {
       $realuser = user_load($user->uid);
       $key = $realuser->{$field}[LANGUAGE_NONE][0]['value'];
-      // Only process stats for users that have Objects and a Scholar Profile. If not why?
+      // Only process stats for users that have Objects and a Scholar Profile.
       if ((($pid = islandora_matomo_get_userprofile(
             $key
           )) != NULL) && ($objectcount = islandora_matomo_get_objectcount_foruser(
           $key
-        ))) {
+          ))) {
         islandora_matomo_user_notify($realuser, $pid, $key, $objectcount);
       }
     }
@@ -803,54 +766,87 @@ function islandora_matomo_mail($key, &$message, $params) {
   $upl = user_preferred_language($params['user']);
   $month = $params['month'];
   $year = $params['year'];
-  $numobjects = $params['objectcount']; // query Solr for this.
+  // Query Solr for this.
+  $numobjects = $params['objectcount'];
   $matomo_actions = $params['hits'];
-  $pid = $params['profile_pid']; // Make this the Scholar profile Object.
+  // Make this the Scholar profile Object.
+  $pid = $params['profile_pid'];
   /*
 
   Subject: Your [most recent month] readership report from [Repository name]
 
   Dear [ Jon Jon ],
 
-  Here is your monthly readership report provided by [Repository name]. Your work was accessed [x] times in [most recent month].
+  Here is your monthly readership report provided by [Repository name].
+  Your work was accessed [x] times in [most recent month].
 
-  As of [most recent month], you have deposited [x] works in [Repository Name] and your work has been accessed a total of [x] times.
+  As of [most recent month], you have deposited [x] works in
+  [Repository Name] and your work has been accessed a total of [x] times.
 
   Visit your [author dashboard] to learn more about your readership.
 
   [Contact Us] | [Unsubscribe] | Visit [Repository Name]
 
- */
-
+   */
 
   $message['headers']['MIME-Version'] = '1.0';
   $message['headers']['Content-Type'] = 'text/plain;charset=utf-8';
-  $message['subject'] = t('Your !month !year readership report from !sitename', array(
-    '!month' => $month,
-    '!year' => $year,
-    '!sitename' => $sitename
-  ), array('langcode' => $upl->language));
-  $message['body'][] = t('Dear !username,', array(
-    '!username' => $username,
-  ), array('langcode' => $upl->language));
-  $message['body'][] = t('Here is your monthly readership report provided by !sitename', array(
-    '!sitename' => $sitename
-  ), array('langcode' => $upl->language));
-  $message['body'][] = t('As of !month, you have deposited !numobjects works in !sitename and your work has been accessed a total of !hits times.', array(
-    '!month' => $month,
-    '!numobjects' => $numobjects,
-    '!sitename' => $sitename,
-    '!hits' => $matomo_actions,
-  ), array('langcode' => $upl->language));
-  $message['body'][] = t('Visit your \'!url\' to learn more about your readership.', array(
-    '!url' => url('islandora/object/' . $pid . '/readership' , array('absolute' => TRUE)),
-  ), array('langcode' => $upl->language));
+  $message['subject'] = t(
+    'Your !month !year readership report from !sitename',
+    [
+      '!month' => $month,
+      '!year' => $year,
+      '!sitename' => $sitename,
+    ],
+    ['langcode' => $upl->language]
+  );
+  $message['body'][] = t(
+    'Dear !username,',
+    [
+      '!username' => $username,
+    ],
+    ['langcode' => $upl->language]
+  );
+  $message['body'][] = t(
+    'Here is your monthly readership report provided by !sitename',
+    [
+      '!sitename' => $sitename,
+    ],
+    ['langcode' => $upl->language]
+  );
+  $message['body'][] = t(
+    'As of !month, you have deposited !numobjects works in !sitename and your work has been accessed a total of !hits times.',
+    [
+      '!month' => $month,
+      '!numobjects' => $numobjects,
+      '!sitename' => $sitename,
+      '!hits' => $matomo_actions,
+    ],
+    ['langcode' => $upl->language]
+  );
+  $message['body'][] = t(
+    'Visit your !url to learn more about your readership.',
+    [
+      '!url' => url(
+        'islandora/object/' . $pid . '/readership',
+        ['absolute' => TRUE]
+      ),
+    ],
+    ['langcode' => $upl->language]
+  );
 
-  $message['body'][]= t('This is an automatic e-mail from !sitename.',
-      array('!sitename' => variable_get('site_name', 'Drupal')), array('langcode' => $upl->language));
+  $message['body'][] = t(
+    'This is an automatic e-mail from !sitename.',
+    ['!sitename' => variable_get('site_name', 'Drupal')],
+    ['langcode' => $upl->language]
+  );
 
-  $message['body'][] = t('To stop receiving these e-mails, change your Reader Ship notification preferences at !url', array(
-      '!url' => url('user/' . $useruid , array('absolute' => TRUE)),
-  ), array('langcode' => $upl->language));
+  $message['body'][] = t(
+    'To stop receiving these e-mails, change your Reader Ship notification preferences at !url',
+    [
+      '!url' => url('user/' . $useruid, ['absolute' => TRUE]),
+    ],
+    ['langcode' => $upl->language]
+  );
 
 }

@@ -1,19 +1,31 @@
 <?php
 
+/**
+ * @file
+ * Provides Forms for the islandora_matomo module.
+ */
+
+/**
+ * Islandora Matomo Report Form.
+ */
 function islandora_matomo_report_form($form, &$form_state) {
-  $index_page = rtrim(variable_get('islandora_matomo_url', 'http://matomo.example.com'),'/') .'/index.php';
+  $index_page = rtrim(variable_get('islandora_matomo_url', 'http://matomo.example.com'), '/') . '/index.php';
   $general_site_id = variable_get('islandora_matomo_site_id', '1');
   $otherdimensions_site_id = variable_get('islandora_matomo_moredimensions_site_id', '2');
   $token_auth = variable_get('islandora_matomo_api_key', '');
   $day_ini = new DateTime("yesterday");
   $day_end = new DateTime("today");
   $diff = $day_end->diff($day_ini)->format("%a");
-  $start_date =  $day_ini->format('m/d/Y'); // 2012-02-01
-  $end_date = $day_end->format('m/d/Y'); // 2012-02-29
-  $start_date_m = $day_ini->format('Y-m-d'); // 2012-02-01
-  $end_date_m =$day_end->format('Y-m-d'); // 2012-02-01
+  // 2012-02-01.
+  $start_date = $day_ini->format('m/d/Y');
+  // 2012-02-29.
+  $end_date = $day_end->format('m/d/Y');
+  // 2012-02-01.
+  $start_date_m = $day_ini->format('Y-m-d');
+  // 2012-02-01.
+  $end_date_m = $day_end->format('Y-m-d');
   //
-  //drupal_add_library('system', 'jquery.form');
+  // drupal_add_library('system', 'jquery.form');.
   if (isset($form_state['values']['initial_date'])) {
 
     $initial_date = $form_state['values']['initial_date'];
@@ -21,13 +33,17 @@ function islandora_matomo_report_form($form, &$form_state) {
     $date1 = new DateTime($initial_date);
     $date2 = new DateTime($end_date);
 
-    $start_date_m = $date1->format('Y-m-d'); // 2012-02-01
-    $end_date_m =$date2->format('Y-m-d'); // 2012-02-01
-    $start_date =  $date1->format('m/d/Y'); // 2012-02-01
-    $end_date = $date2->format('m/d/Y'); // 2012-02-29
+    // 2012-02-01.
+    $start_date_m = $date1->format('Y-m-d');
+    // 2012-02-01.
+    $end_date_m = $date2->format('Y-m-d');
+    // 2012-02-01.
+    $start_date = $date1->format('m/d/Y');
+    // 2012-02-29.
+    $end_date = $date2->format('m/d/Y');
     $diff = $date2->diff($date1)->format("%a");
   }
-  $diff = $diff +1;
+  $diff = $diff + 1;
   $markup = <<<MARKUP
 <h3>Real-time map</h3>
 <div id="widgetIframe1"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&widget=1&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
@@ -42,20 +58,20 @@ function islandora_matomo_report_form($form, &$form_state) {
 <div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=1&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Islandora Object usage</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe5"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=2&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Readership by Authors</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe6"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Readership by Departments</h3>
-<div id="widgetIframe4"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=4&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe7"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=4&idSite=$otherdimensions_site_id&period=month&date=today&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 
 <h3>Searches</h3>
-<div id="widgetIframe5"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe8"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Searches returning no results</h3>
-<div id="widgetIframe6"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchNoResultKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=0&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe9"><iframe width="100%" height="350" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getSiteSearchNoResultKeywords&idSite=$general_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=0&widget=1&filter_limit=50&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 MARKUP;
 
   $form['initial_date'] = [
@@ -76,13 +92,13 @@ MARKUP;
     '#ajax' => [
       'callback' => 'islandora_matomo_report_form_ajax_updatewidgets',
       'wrapper' => 'islandora-matomo-report',
-      ],
-    ];
+    ],
+  ];
   $form['report'] = [
     '#prefix' => '<div id="islandora-matomo-report">',
     '#suffix' => '</div>',
     '#type' => 'markup',
-    '#markup' => $markup
+    '#markup' => $markup,
   ];
   if (!$form_state['rebuild']) {
     error_log('hu, i need this');
@@ -92,12 +108,37 @@ MARKUP;
   return $form;
 }
 
-function islandora_matomo_report_form_uidatepicker($form, $form_state) {
+/**
+ * Adds ui.datepicker elements.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ *
+ * @return array
+ *   The form.
+ */
+function islandora_matomo_report_form_uidatepicker(array $form, array $form_state) {
   drupal_add_library('system', 'ui.datepicker');
-  drupal_add_js("(function ($) { $('.datepicker').datepicker(); })(jQuery);", array('type' => 'inline', 'scope' => 'footer', 'weight' => 5));
+  drupal_add_js(
+    "(function ($) { $('.datepicker').datepicker(); })(jQuery);",
+    array('type' => 'inline', 'scope' => 'footer', 'weight' => 5)
+  );
   return $form;
 }
 
+/**
+ * Submit handler for islandora_matomo_report_form.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ *
+ * @return array
+ *   The form.
+ */
 function islandora_matomo_report_form_submit(array $form, array &$form_state) {
 
   $form_state['rebuild'] = TRUE;
@@ -105,6 +146,14 @@ function islandora_matomo_report_form_submit(array $form, array &$form_state) {
 
 }
 
+/**
+ * Validation handler for islandora_matomo_report_form.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ */
 function islandora_matomo_report_form_validate(array $form, array &$form_state) {
 
   $initial_date = $form_state['values']['initial_date'];
@@ -132,13 +181,31 @@ function islandora_matomo_report_form_validate(array $form, array &$form_state) 
     form_set_error('start_date', t('Start and End Date are the same'));
   }
 }
+
 /**
- *  Callback for ajax driven Report form.
+ * Callback for ajax driven Report form.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state.
+ *
+ * @return array
+ *   The report form element.
  */
-function islandora_matomo_report_form_ajax_updatewidgets($form, &$form_state) {
+function islandora_matomo_report_form_ajax_updatewidgets(array $form, array &$form_state) {
   return $form['report'];
 }
 
+/**
+ * Helper function to get userprofile based on a PID.
+ *
+ * @param string $pid
+ *   A Pid.
+ *
+ * @return string|null
+ *   The unique id coming from MARC for this user.
+ */
 function _islandora_matomo_get_userprofile_bypid($pid) {
   $key = NULL;
   $query_processor = new IslandoraSolrQueryProcessor();
@@ -147,40 +214,48 @@ function _islandora_matomo_get_userprofile_bypid($pid) {
   $query_processor->buildQuery($query);
   // Todo make this solr field configurable.
   $query_processor->solrParams['fl'] = 'PID,' . trim($bindingfield);
-  $query_processor->solrParams['fq'][] = 'PID:' . "\"" . $pid ."\"";
+  $query_processor->solrParams['fq'][] = 'PID:' . "\"" . $pid . "\"";
   $query_processor->solrParams['fq'][] = 'RELS_EXT_hasModel_uri_ms:' . "\"info:fedora/islandora:personCModel\"";
   try {
     $query_processor->executeQuery(FALSE);
     $solr_results = $query_processor->islandoraSolrResult['response'];
     if ($solr_results['numFound'] > 0) {
-      //@TODO recheck this, could be single value instead of an array?
+      // @TODO recheck this, could be single value instead of an array?
       $key = $solr_results['objects'][0]['solr_doc'][$bindingfield][0];
     }
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     watchdog(
       'islandora_matomo',
       'Islandora Matomo found errors getting the Scholar profile Key for !pid with error: !error',
       [
         '!pid' => $pid,
-        '!error' => check_plain($e->getMessage())
+        '!error' => check_plain($e->getMessage()),
 
       ],
       WATCHDOG_WARNING
-    );
+      );
 
   }
   return $key;
 }
 
+/**
+ * The readership report form handler.
+ */
 function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObject $object) {
   if ($object) {
     $month_ini = new DateTime("first day of last month");
     $month_end = new DateTime("last day of last month");
     $diff = $month_end->diff($month_ini)->format("%a");
-    $start_date =  $month_ini->format('m/d/Y'); // 2012-02-01
-    $end_date = $month_end->format('m/d/Y'); // 2012-02-29
-    $start_date_m = $month_ini->format('Y-m-d'); // 2012-02-01
-    $end_date_m =$month_end->format('Y-m-d'); // 2012-02-01
+    // 2012-02-01.
+    $start_date = $month_ini->format('m/d/Y');
+    // 2012-02-29.
+    $end_date = $month_end->format('m/d/Y');
+    // 2012-02-01.
+    $start_date_m = $month_ini->format('Y-m-d');
+    // 2012-02-01.
+    $end_date_m = $month_end->format('Y-m-d');
     $index_page = rtrim(
         variable_get('islandora_matomo_url', 'http://matomo.example.com'),
         '/'
@@ -192,35 +267,39 @@ function islandora_matomo_readershipreport_form($form, &$form_state, AbstractObj
     $token_auth = variable_get('islandora_matomo_api_key', '');
     $userkey = _islandora_matomo_get_userprofile_bypid($object->id);
 
-    //drupal_add_library('system', 'jquery.form');
+    // drupal_add_library('system', 'jquery.form');.
     if (isset($form_state['values']['initial_date'])) {
       $initial_date = $form_state['values']['initial_date'];
       $end_date = $form_state['values']['end_date'];
       $date1 = new DateTime($initial_date);
       $date2 = new DateTime($end_date);
-      $start_date_m = $date1->format('Y-m-d'); // 2012-02-01
-      $end_date_m =$date2->format('Y-m-d'); // 2012-02-01
-      $start_date =  $date1->format('m/d/Y'); // 2012-02-01
-      $end_date = $date2->format('m/d/Y'); // 2012-02-29
+      // 2012-02-01.
+      $start_date_m = $date1->format('Y-m-d');
+      // 2012-02-01.
+      $end_date_m = $date2->format('Y-m-d');
+      // 2012-02-01.
+      $start_date = $date1->format('m/d/Y');
+      // 2012-02-29.
+      $end_date = $date2->format('m/d/Y');
       $diff = $date2->diff($date1)->format("%a");
     }
-    $diff = $diff +1;
+    $diff = $diff + 1;
     // Leave this for CSS/HTML discussion <div id="htmlreport"><iframe width="100%" height="350" src="$index_page?expanded=1&filter_limit=100&format=HTML&format_metrics=1&idSite=$otherdimensions_site_id&method=Actions.getPageTitles&module=API&period=range&date=$start_date_m,$end_date_m&segment=dimension3%3D%3D$userkey&token_auth=$token_auth"></iframe></div>
-    //
+    // .
     $markup = <<<MARKUP
 <h2>Report for a $diff days period</h2>
  
 <h3>By Title</h3>
-<div id="widgetIframe3"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe1"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=Actions&actionToWidgetize=getPageTitles&filter_limit=50&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>by Author/URL</h3>
-<div id="widgetIframe4"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe2"><iframe width="100%" height="450" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=CustomDimensions&actionToWidgetize=getCustomDimension&idDimension=3&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&filter_limit=50&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Real-time map for this Scholar</h3>
-<div id="widgetIframe1"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe3"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMap&actionToWidgetize=realtimeMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 <h3>Visitor map</h3>
-<div id="widgetIframe2"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMapIslandora&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
+<div id="widgetIframe4"><iframe width="100%" height="380" src="$index_page?module=Widgetize&action=iframe&widget=1&moduleToWidgetize=UserCountryMapIslandora&actionToWidgetize=visitorMap&idSite=$otherdimensions_site_id&period=range&date=$start_date_m,$end_date_m&disableLink=1&widget=1&segment=dimension3%3D%3D$userkey&token_auth=$token_auth" scrolling="yes" frameborder="0" marginheight="0" marginwidth="0"></iframe></div>
 
 MARKUP;
 
@@ -249,7 +328,7 @@ MARKUP;
       '#prefix' => '<div id="islandora-matomo-report">',
       '#suffix' => '</div>',
       '#type' => 'markup',
-      '#markup' => $markup
+      '#markup' => $markup,
     ];
     if (!$form_state['rebuild']) {
       $form['#after_build'] = ['islandora_matomo_report_form_uidatepicker'];
@@ -260,6 +339,9 @@ MARKUP;
   return $form;
 }
 
+/**
+ * Submit handler for islandora_matomo_readershipreport_form.
+ */
 function islandora_matomo_readershipreport_form_submit(array $form, array &$form_state) {
 
   $form_state['rebuild'] = TRUE;

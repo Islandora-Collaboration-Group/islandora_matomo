@@ -1,4 +1,123 @@
 <?PHP
+
+/**
+ * @file
+ * Install file for islandora_matomo.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function islandora_matomo_enable() {
+  // Check if this new send matomo report field is not already there.
+  if (!field_info_field('field_islandoramatomo_sendreport')) {
+    $field = [
+      'field_name' => 'field_islandoramatomo_sendreport',
+      'type' => 'list_boolean',
+      'cardinality' => 1,
+      'settings' => [
+        'allowed_values' => [
+          1 => 'Yes',
+          0 => 'No',
+        ],
+      ],
+    ];
+    field_create_field($field);
+
+    // Create the instance on the bundle.
+    $instance = [
+      'field_name' => 'field_islandoramatomo_sendreport',
+      'entity_type' => 'user',
+      'label' => 'Send Islandora Matomo Report via email every month.',
+      'bundle' => 'user',
+      // If you don't set the "required" property then the field wont be
+      // required by default.
+      'required' => TRUE,
+      'settings' => [
+        // Field showing up on the registration form.
+        'user_register_form' => 1,
+      ],
+      'widget' => [
+        'type' => 'options_buttons',
+      ],
+      'weight' => '1',
+    ];
+    field_create_instance($instance);
+  }
+  // Check if this new u1 to drupal value field is not already there.
+  if (!field_info_field('field_islandoramatomo_userkey')) {
+    $field2 = [
+      'field_name' => 'field_islandoramatomo_userkey',
+      'type' => 'text',
+      'cardinality' => 1,
+      'max_length' => 64,
+    ];
+    field_create_field($field2);
+    // @TODO there could be security concern here.
+    // If a user can change its own userkey and access via that to
+    // another dashboard?
+    // Create the instance on the bundle.
+    $instance2 = [
+      'field_name' => 'field_islandoramatomo_userkey',
+      'entity_type' => 'user',
+      'label' => 'Value used to connect an Islandora Scholar Profile to this User account.',
+      'bundle' => 'user',
+      // If you don't set the "required" property then the field wont
+      // be required by default.
+      'required' => TRUE,
+      'settings' => [
+        // Field showing up on the registration form.
+        // If 0 it will only show on edit. Ask @noah.
+        'user_register_form' => 1,
+      ],
+      'widget' => [
+        'type' => 'text_textfield',
+      ],
+      'display' => [
+        'default' => [
+          'type' => 'text_default',
+        ],
+      ],
+      'weight' => '2',
+    ];
+    field_create_instance($instance2);
+  }
+  if (!field_info_field('field_islandoramatomo_lastreport')) {
+    $field3 = [
+      'field_name' => 'field_islandoramatomo_lastreport',
+      'type' => 'number_integer',
+      'cardinality' => 1,
+      'translatable' => FALSE,
+    ];
+    field_create_field($field3);
+    $instance3 = [
+      'field_name' => 'field_islandoramatomo_lastreport',
+      'entity_type' => 'user',
+      'no_ui' => TRUE,
+      'display' => [
+        'default' => [
+          'type' => 'hidden',
+        ],
+        'teaser' => [
+          'type' => 'hidden',
+        ],
+      ],
+      'label' => 'Value used to track last sent report for this user.',
+      'bundle' => 'user',
+      'settings' => [
+        // Field showing up on the registration form.
+        // If 0 it will only show on edit. Ask @noah.
+        'user_register_form' => 0,
+      ],
+      'weight' => '3',
+    ];
+    field_create_instance($instance3);
+  }
+}
+
+/**
+ * Gives the field field_islandoramatomo_userkey on existing users a default.
+ */
 function islandora_matomo_update_7001(&$sandbox) {
 
   $entity_type = 'user';
@@ -27,7 +146,7 @@ function islandora_matomo_update_7001(&$sandbox) {
     $userobject->{$field}[LANGUAGE_NONE][0]['value'] = $userobject->name;
     field_sql_storage_field_storage_write('user', $userobject, 'update', $field_keys);
 
-    // Clear field cache
+    // Clear field cache.
     cache_clear_all("field:user:$user->uid", 'cache_field');
 
     $sandbox['progress']++;
@@ -39,9 +158,11 @@ function islandora_matomo_update_7001(&$sandbox) {
   return $t("Islandora Matomo updates updates on users complete");
 }
 
+/**
+ * Implements hook_uninstall().
+ */
 function islandora_matomo_uninstall() {
   field_delete_field('field_islandoramatomo_userkey');
   field_delete_field('field_islandoramatomo_sendreport');
   field_delete_field('field_islandoramatomo_lastreport');
 }
-
