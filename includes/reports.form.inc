@@ -101,7 +101,6 @@ MARKUP;
     '#markup' => $markup,
   ];
   if (!$form_state['rebuild']) {
-    error_log('hu, i need this');
     $form['#after_build'] = ['islandora_matomo_report_form_uidatepicker'];
   }
 
