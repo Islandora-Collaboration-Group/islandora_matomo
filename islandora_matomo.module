@@ -67,9 +67,9 @@ function islandora_matomo_menu() {
 }
 
 /**
- * Access callback limiting to profile Objects and enabled permissions.
+* Access callback for Usage reports.
  */
-function islandora_matomo_readership_access_callback(AbstractObject $object) {
+function islandora_matomo_usage_access_callback(AbstractObject $object) {
   return islandora_object_access(
       ISLANDORA_VIEW_OBJECTS,
       $object
@@ -77,9 +77,9 @@ function islandora_matomo_readership_access_callback(AbstractObject $object) {
 }
 
 /**
- * Access callback for Usage reports.
+ * Access callback limiting to profile Objects and enabled permissions.
  */
-function islandora_matomo_usage_access_callback(AbstractObject $object) {
+function  islandora_matomo_readership_access_callback(AbstractObject $object) {
   return islandora_object_access(
       ISLANDORA_VIEW_OBJECTS,
       $object
@@ -731,12 +731,12 @@ function islandora_matomo_cron() {
     ->entityCondition('bundle', 'user')
     ->fieldCondition($field, 'value', 'NULL', '<>')
     ->fieldCondition('field_islandoramatomo_sendreport', 'value', 1, '=')
-    ->fieldCondition(
+    /*->fieldCondition(
       'field_islandoramatomo_lastreport',
       'value',
       $lasttime,
       '<'
-    )
+    )*/
     ->propertyOrderBy('uid')
     ->addMetaData('account', user_load(1));
   $results = $query->execute();
