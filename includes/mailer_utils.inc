@@ -11,7 +11,7 @@
  * @see \islandora_matomo_mail()
  */
 function islandora_matomo_user_notify($user, $pid, $userkey, $objectcount = 0) {
-  $field = 'field_islandoramatomo_sendreport';
+  $field = 'field_islandoramatomo_lastreport';
   $module = 'islandora_matomo';
   $to = $user->mail;
   $from = variable_get('site_mail', 'admin@example.com');
