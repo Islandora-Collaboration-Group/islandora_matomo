@@ -43,7 +43,8 @@ function islandora_matomo_user_notify($user, $pid, $userkey, $objectcount = 0) {
     // Track when the last mail was successfully sent to avoid sending
     // too many e-mails.
     if ($message['result']) {
-      $user->{$field}[LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
+      $edit[$field][LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
+      user_save($user,$edit);
     }
   }
 }
