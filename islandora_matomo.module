@@ -716,34 +716,42 @@ function islandora_matomo_show_for_cmodel(AbstractObject $object) {
  * Gets all users that want a matomo report and send them a gist via email.
  */
 function islandora_matomo_cron() {
-  if (!variable_get('islandora_matomo_send_emails', 1)) {
+  $now = time();
+  $to_days = idate('d', $now);
+
+  // Will only run if in the first 9 days of a month. That gives enough time.
+  // @TODO Needs to be documented that Cron will try to send 500 users per run.
+  if (!variable_get('islandora_matomo_send_emails', 1) || $to_days >=9 )  {
     return;
   }
 
   module_load_include('inc', 'islandora_matomo', 'includes/mailer_utils');
-  $now = time();
-  $lasttime = strtotime("-20DAYS", $now);
-  $field = 'field_islandoramatomo_userkey';
 
-  // Force the query to run as user 1 so we have full access to fields.
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'user')
-    ->entityCondition('bundle', 'user')
-    ->fieldCondition($field, 'value', 'NULL', '<>')
-    ->fieldCondition('field_islandoramatomo_sendreport', 'value', 1, '=')
-    /*->fieldCondition(
-      'field_islandoramatomo_lastreport',
-      'value',
-      $lasttime,
-      '<'
-    )*/
-    ->propertyOrderBy('uid')
-    ->addMetaData('account', user_load(1));
-  $results = $query->execute();
-  if (isset($results['user'])) {
-    foreach ($results['user'] as $key => $user) {
-      $realuser = user_load($user->uid);
-      $key = $realuser->{$field}[LANGUAGE_NONE][0]['value'];
+  $lasttime = strtotime("-20DAYS", $now);
+  // This means will never send anything if already send in last 20 days.
+  // 20 days diff + 9 days trying to send seems like a sweet combination.
+  // This gives us enough of a check i guess
+  // @LASIR can add then skip-condition if needed.
+
+  $result = db_query('SELECT userkey.entity_id as entity_id, userkey.field_islandoramatomo_userkey_value as userkey_value, lastreport.field_islandoramatomo_lastreport_value
+FROM {field_data_field_islandoramatomo_userkey} userkey 
+INNER JOIN {users} users ON users.uid = userkey.entity_id 
+INNER JOIN {field_data_field_islandoramatomo_sendreport} sendreport ON sendreport.entity_type = userkey.entity_type AND sendreport.entity_id = userkey.entity_id
+LEFT JOIN  {field_data_field_islandoramatomo_lastreport} lastreport ON (lastreport.entity_type = userkey.entity_type 
+AND lastreport.entity_id = userkey.entity_id) OR (lastreport.entity_type IS NULL)
+WHERE userkey.field_islandoramatomo_userkey_value IS NOT NULL 
+AND sendreport.entity_id = userkey.entity_id 
+AND userkey.entity_type = sendreport.entity_type 
+AND sendreport.field_islandoramatomo_sendreport_value = :send
+AND userkey.entity_type = :entityid
+AND userkey.deleted = :deleted
+AND (lastreport.field_islandoramatomo_lastreport_value < :timestamp OR lastreport.field_islandoramatomo_lastreport_value IS NULL) 
+LIMIT 0,500', array(':entityid' => 'user', ':deleted' => 0, ':send' => 1, ':timestamp' => $lasttime));
+// Tries to run 500 users at a time. Not sure if too many, but this all depends on how often cron will run.
+
+  while ($record = $result->fetchObject()) {
+      $realuser = user_load($record->entity_id);
+      $key = $record->userkey_value;
       // Only process stats for users that have Objects and a Scholar Profile.
       if ((($pid = islandora_matomo_get_userprofile(
             $key
@@ -753,7 +761,6 @@ function islandora_matomo_cron() {
         islandora_matomo_user_notify($realuser, $pid, $key, $objectcount);
       }
     }
-  }
 }
 
 /**
@@ -792,7 +799,7 @@ function islandora_matomo_mail($key, &$message, $params) {
   $message['headers']['MIME-Version'] = '1.0';
   $message['headers']['Content-Type'] = 'text/plain;charset=utf-8';
   $message['subject'] = t(
-    'Your !month !year readership report from !sitename.',
+    'Your !month !year readership report from !sitename',
     [
       '!month' => $month,
       '!year' => $year,
@@ -808,7 +815,7 @@ function islandora_matomo_mail($key, &$message, $params) {
     ['langcode' => $upl->language]
   );
   $message['body'][] = t(
-    'Here is your monthly readership report provided by !sitename',
+    'Here is your monthly readership report provided by !sitename.',
     [
       '!sitename' => $sitename,
     ],
