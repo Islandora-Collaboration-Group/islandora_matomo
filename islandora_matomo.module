@@ -792,7 +792,7 @@ function islandora_matomo_mail($key, &$message, $params) {
   $message['headers']['MIME-Version'] = '1.0';
   $message['headers']['Content-Type'] = 'text/plain;charset=utf-8';
   $message['subject'] = t(
-    'Your !month !year readership report from !sitename',
+    'Your !month !year readership report from !sitename.',
     [
       '!month' => $month,
       '!year' => $year,
@@ -825,7 +825,7 @@ function islandora_matomo_mail($key, &$message, $params) {
     ['langcode' => $upl->language]
   );
   $message['body'][] = t(
-    'Visit your !url to learn more about your readership.',
+    'Visit !url to learn more about your readership.',
     [
       '!url' => url(
         'islandora/object/' . $pid . '/readership',
@@ -842,7 +842,7 @@ function islandora_matomo_mail($key, &$message, $params) {
   );
 
   $message['body'][] = t(
-    'To stop receiving these e-mails, change your Reader Ship notification preferences at !url',
+    'To stop receiving these e-mails, change your readership notification preferences at !url.',
     [
       '!url' => url('user/' . $useruid, ['absolute' => TRUE]),
     ],
