@@ -21,7 +21,10 @@ define(
   'ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION',
   'view islandora matomo usage'
 );
-
+define(
+  'ISLANDORA_MATOMO_ISLANDORA_OBJECT_COUNT_VIEW_PERMISSION',
+  'view islandora matomo count report'
+);
 /**
  * Implements hook_menu().
  */
@@ -122,6 +125,12 @@ function islandora_matomo_permission() {
       'title' => t('View Islandora Usage Stats on each Object'),
       'description' => t(
         'View usage stats widgets managed by the Islandora Matomo module'
+      ),
+    ],
+    ISLANDORA_MATOMO_ISLANDORA_OBJECT_COUNT_VIEW_PERMISSION => [
+      'title' => t('View Islandora Usage Stats on each Object'),
+      'description' => t(
+        'View Object Visit/download Block managed by the Islandora Matomo module'
       ),
     ],
   ];
@@ -590,6 +599,14 @@ function islandora_matomo_theme($existing, $type, $theme, $path) {
         'pid' => NULL,
       ],
     ],
+    'islandora_matomo_count' => [
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-matomo-count',
+      'pattern' => 'islandora-matomo-count__',
+      'variables' => [
+        'pid' => NULL,
+      ],
+    ],
   ];
 }
 
@@ -599,6 +616,12 @@ function islandora_matomo_theme($existing, $type, $theme, $path) {
 function islandora_matomo_block_info() {
   $blocks['matomo_object_widget'] = [
     'info' => t('Islandora Matomo Real time visitors widget'),
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages' => 'islandora/object/*/readership/*',
+    'cache' => DRUPAL_NO_CACHE,
+  ];
+  $blocks['matomo_object_visitscount'] = [
+    'info' => t('Islandora Matomo Visits Counts and Downloads Block'),
     'visibility' => BLOCK_VISIBILITY_LISTED,
     'pages' => 'islandora/object/*',
     'cache' => DRUPAL_NO_CACHE,
@@ -622,7 +645,17 @@ function islandora_matomo_block_view($delta = '') {
         }
       }
       break;
-
+    case 'matomo_object_visitscount':
+      if (user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_COUNT_VIEW_PERMISSION)){
+      $object = menu_get_object('islandora_object', 2);
+      if ($object) {
+        if (islandora_matomo_showcount_for_cmodel($object)) {
+          module_load_include('inc', 'islandora_matomo', 'includes/blocks');
+          $block['subject'] = NULL;
+          $block['content'] = islandora_matomo_countonobject_block($object);
+        }
+      }
+    }
     default:
   }
   return $block;
@@ -677,6 +710,48 @@ function islandora_matomo_block_configure($delta = '') {
       ];
 
       break;
+    case 'matomo_object_visitscount':
+      module_load_include('inc', 'islandora', 'includes/utilities');
+      $options = islandora_get_content_models();
+      $selected = variable_get(
+        'islandora_matomo_count_enabled_content_models',
+        ['ir:citationCModel', 'ir:thesisCModel']
+      );
+      foreach ($selected as $cmodel) {
+        if (isset($options[$cmodel])) {
+          $options = [$cmodel => $options[$cmodel]] + $options;
+        }
+      }
+      foreach ($options as $key => $value) {
+        $rows[$key] = [
+          'pid' => $key,
+          'title' => $value['label'],
+        ];
+        in_array(
+          $key,
+          $selected
+        ) ? $defaults[$key] = TRUE : $defaults[$key] = FALSE;
+      }
+      $header = [
+        'pid' => ['data' => t('PID')],
+        'title' => ['data' => t('Content Model')],
+      ];
+
+      $form['intro'] = [
+        '#type' => 'item',
+        '#title' => 'Select allowed Islandora Content Models.',
+        '#description' => t(
+          'Objects defined by selected Content Models will show this block. The block "Pages" configuration can limit this option further.'
+        ),
+      ];
+      $form['the_table'] = [
+        '#type' => 'tableselect',
+        '#header' => $header,
+        '#options' => $rows,
+        '#default_value' => $defaults,
+      ];
+
+      break;
   }
   return $form;
 }
@@ -690,8 +765,14 @@ function islandora_matomo_block_save($delta = '', $edit = []) {
       $enabled = array_filter($edit['the_table']);
       variable_set('islandora_matomo_report_enabled_content_models', $enabled);
       break;
+    case 'matomo_object_visitscount':
+      $enabled = array_filter($edit['the_table']);
+      variable_set('islandora_matomo_count_enabled_content_models', $enabled);
+      break;
   }
 }
+
+
 
 /**
  * Determine if the object has allowed CMODEL Object.
@@ -700,11 +781,27 @@ function islandora_matomo_block_save($delta = '', $edit = []) {
  *   The object we are viewing.
  *
  * @return bool
- *   Whether $object has a content model to show badges for.
+ *   Whether $object has a content model to show widgets for.
  */
 function islandora_matomo_show_for_cmodel(AbstractObject $object) {
   $show_cmodels = variable_get(
     'islandora_matomo_report_enabled_content_models',
+    ['ir:citationCModel', 'ir:thesisCModel']
+  );
+  return (count(array_intersect($object->models, $show_cmodels)) > 0);
+}
+/**
+ * Determine if the object has an allowed CMODEL for the count block.
+ *
+ * @param \AbstractObject $object
+ *   The object we are viewing.
+ *
+ * @return bool
+ *   Whether $object has a content model to show count for.
+ */
+function islandora_matomo_showcount_for_cmodel(AbstractObject $object) {
+  $show_cmodels = variable_get(
+    'islandora_matomo_count_enabled_content_models',
     ['ir:citationCModel', 'ir:thesisCModel']
   );
   return (count(array_intersect($object->models, $show_cmodels)) > 0);
