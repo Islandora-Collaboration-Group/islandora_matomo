@@ -7,7 +7,7 @@
 ?>
 <?php if ($matomo_token): ?>
 <div class="islandora-matomo-count">
-    <div class="row stats-box">
+    <div class="stats-box">
         <div class="row">
             <div class="col-sm-6">
                 <span class="stats-data"><?php print $stats['visits']; ?></span>
