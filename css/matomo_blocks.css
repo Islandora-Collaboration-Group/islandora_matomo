@@ -1,5 +1,12 @@
-.stats-box {
+.islandora-matomo-stats-box {
     text-align: left;
     padding-bottom: 10px;
     margin-bottom: 10px;
+}
+.islandora-matomo-stats-box i {
+    margin-left:0.5em;
+}
+.islandora-matomo-stats-box div.islandora-matomo-stats-legend {
+    clear:none;
+    float:left;
 }
