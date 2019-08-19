@@ -24,7 +24,7 @@ function template_preprocess_islandora_matomo_widget(array &$variables) {
     '1'
   );
 
-  if (user_access('view islandora matomo reports')) {
+  if (user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION)) {
     $variables['matomo_token'] = $token_auth = variable_get(
       'islandora_matomo_api_key',
       NULL
@@ -75,6 +75,15 @@ function template_preprocess_islandora_matomo_count(array &$variables) {
       variable_get('islandora_matomo_url', 'http://matomo.example.com'),
       '/'
     ) . '/';
+  if (user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_COUNT_VIEW_PERMISSION)) {
+    $variables['matomo_token'] = $token_auth = variable_get(
+      'islandora_matomo_api_key',
+      NULL
+    );
+  }
+  else {
+    $variables['matomo_token'] = variable_get('islandora_matomo_widget_api_key', 'anonymous');
+  }
   $variables['matomo_url'] = $endpoint = $matomo_url . 'index.php';
   $variables['matomo_site'] = $siteId = variable_get(
     'islandora_matomo_site_id',

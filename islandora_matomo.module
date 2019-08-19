@@ -45,7 +45,7 @@ function islandora_matomo_menu() {
     'page callback' => 'drupal_get_form',
     'file' => 'includes/reports.form.inc',
     'page arguments' => ['islandora_matomo_report_form'],
-    'access arguments' => ['view islandora matomo reports'],
+    'access arguments' => [ISLANDORA_MATOMO_ISLANDORA_OBJECT_REPORT_VIEW_PERMISSION],
     'type' => MENU_NORMAL_ITEM,
   ];
   $items['islandora/object/%islandora_object/readership'] = [
@@ -128,7 +128,7 @@ function islandora_matomo_permission() {
       ),
     ],
     ISLANDORA_MATOMO_ISLANDORA_OBJECT_COUNT_VIEW_PERMISSION => [
-      'title' => t('View Islandora Usage Stats on each Object'),
+      'title' => t('View Islandora View Count on each Object'),
       'description' => t(
         'View Object Visit/download Block managed by the Islandora Matomo module'
       ),
