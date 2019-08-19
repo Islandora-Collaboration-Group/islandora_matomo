@@ -112,7 +112,7 @@ function _islandora_matomo_fetch_visits_remotejson($objectpid, $start_date = '20
   $data = [];
   $data2 = [];
   $values['visits']  = 0;
-  $values['dowloads']  = 0;
+  $values['downloads']  = 0;
 
   $objectpid = urlencode($objectpid);
 
@@ -126,7 +126,7 @@ function _islandora_matomo_fetch_visits_remotejson($objectpid, $start_date = '20
   );
   $token_auth = variable_get('islandora_matomo_api_key', '');
   // Visits URL
-  $url = "$index_page?apiAction=getCustomDimension&apiModule=CustomDimensions&date=$start_date,$end_date&filter_limit=1&flat=1&format=JSON&format_metrics=1&idDimension=2&idSite=$dimensions_site_id&segment=dimension2%253D%253D$objectpid&method=API.getProcessedReport&module=API&reportUniqueId=CustomDimensions_getCustomDimension_idDimension--2&token_auth=$token_auth";
+  $url = "$index_page?apiAction=getCustomDimension&apiModule=CustomDimensions&date=$start_date,$end_date&filter_limit=1&period=range&flat=1&format=JSON&format_metrics=1&idDimension=2&idSite=$dimensions_site_id&segment=dimension2%253D%253D$objectpid&method=API.getProcessedReport&module=API&reportUniqueId=CustomDimensions_getCustomDimension_idDimension--2&token_auth=$token_auth";
   $response = drupal_http_request($url);
   if (!empty($response->error)) {
     watchdog(
@@ -149,15 +149,15 @@ function _islandora_matomo_fetch_visits_remotejson($objectpid, $start_date = '20
   // Downloads are reported as nb_visits. If no download response will be an empty JSON
   $url_downloads = "$index_page?method=Actions.getDownloads&module=API&date=$start_date,$end_date&period=range&filter_limit=1&flat=1&format=JSON&format_metrics=1&idDimension=2&idSite=$dimensions_site_id&segment=dimension2%253D%253D$objectpid&reportUniqueId=CustomDimensions_getCustomDimension_idDimension--2&token_auth=$token_auth";
 
-   $response2 = drupal_http_request($url_downloads);
-  if (!empty($response->error)) {
+  $response2 = drupal_http_request($url_downloads);
+  if (!empty($response2->error)) {
     watchdog(
       'islandora_matomo',
       'Islandora Matomo found errors getting the JSON Object Download Stats for Object !objectpid with error: Code @code, %error for URL %url',
       [
         '!objectpid' => urldecode($objectpid),
-        '@code' => $response->code,
-        '%error' => $response->error,
+        '@code' => $response2->code,
+        '%error' => $response2->error,
         '%url' => $url_downloads,
 
       ],
