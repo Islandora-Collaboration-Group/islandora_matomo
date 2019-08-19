@@ -6,7 +6,7 @@
 .islandora-matomo-stats-box i {
     margin-left:0.5em;
 }
-.islandora-matomo-stats-box div.islandora-matomo-stats-legend {
+div.islandora-matomo-stats-legend {
     clear:none;
     float:left;
 }
