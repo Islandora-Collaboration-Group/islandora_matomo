@@ -772,7 +772,47 @@ function islandora_matomo_block_save($delta = '', $edit = []) {
   }
 }
 
-
+/**
+ * Implements hook_islandora_datastream_filename_alter().
+ *
+ * We don't use this to alter the filename but to track file downloads
+ * Since this is the only hook invoked in islandora_datastream_view.
+ *
+ * @param string $filename
+ *   The filename being created.
+ * @param AbstractDatastream $datastream
+ *   The datastream object being downloaded.
+ */
+function islandora_matomo_islandora_datastream_filename_alter(&$filename, AbstractDatastream $datastream) {
+  global $base_url;
+  // We use the internal URL for this
+  $matomo_url = rtrim(
+      variable_get('islandora_matomo_internal_url', 'http://matomo.example.com'),
+      '/'
+    ) . '/';
+  $endpoint = $matomo_url . 'matomo.php';
+  $pid = $datastream->parent->id;
+  $general_site_id = $siteId = variable_get('islandora_matomo_site_id', '1');
+  $timeout = (int) variable_get('islandora_matomo_timeout', '2');
+  // We track here the real, not aliased datastream path.
+  $current_path = $base_url . '/' . current_path();
+  $query = '?apiv=1&rec=1';
+  $query .= '&idsite=' . $general_site_id;
+  $query .= '&rand='.uniqid();
+  $query .= '&action_name=datastream_download';
+  $query .= '&url=' . $current_path;
+  $query .= '&download=' . $current_path;
+  $query .= '&dimension2=' . $pid;
+  $uri = $endpoint . $query;
+  try {
+    $return = drupal_http_request($uri, array('timeout' => $timeout));
+  }
+  catch (Exception $e) {
+    watchdog('islandora_matomo', "Error connecting to Matomo server to track datastream download for file %fn belonging to Object with PID %pid: %message", array(
+      "%fn" => $filename, "%pid" => $pid, "%message" => $e->getMessage()),
+      WATCHDOG_ERROR);
+  }
+}
 
 /**
  * Determine if the object has allowed CMODEL Object.

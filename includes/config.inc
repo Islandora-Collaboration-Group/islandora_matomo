@@ -34,6 +34,15 @@ function islandora_matomo_admin_settings() {
     '#maxlength' => 5,
   );
 
+  $form['islandora_matomo_timeout'] = array(
+    '#title' => t('Timeout in seconds'),
+    '#type' => 'textfield',
+    '#size' => 2,
+    '#default_value' => variable_get('islandora_matomo_timeout', '2'),
+    '#description' => t("Used for direct/ not async HTTP API calls to track Datastream Views and downloads"),
+    '#maxlength' => 2,
+  );
+
   $form['islandora_matomo_moredimensions_site_id'] = array(
     '#title' => t('Site ID for extra Tracked Dimensions'),
     '#type' => 'textfield',
