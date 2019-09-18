@@ -92,7 +92,7 @@ function islandora_matomo_admin_settings() {
     '#type' => 'textarea',
     '#size' => 5,
     '#default_value' => variable_get('islandora_matomo_collection_site_ids', ''),
-    '#description' => t("Piwik site IDs for specific collections, one entry per
+    '#description' => t("Matomo site IDs for specific collections, one entry per
       row. Each row should be in PID, site ID format
       (e.g., \"islandora:mycollection, 5\"). Multiple collections can be
       associated with the same site ID."),

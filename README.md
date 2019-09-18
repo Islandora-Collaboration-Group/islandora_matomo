@@ -8,8 +8,8 @@ HTTP API and also the Javascript library to allow Asynchronous/parallel tracking
 Islandora Matomo tracks Islandora object usage and (optionally) collection usage plus Authors and Departments if the r
 equired metadata fields are correctly setup and configured in Solr as fields. 
 
-Object usage is straight foward: each time a user navigates to an Islandora Object (wheter or not it located at the 
-default path/islandora/object/pid), the request for that URL and the PID of the Object,
+Object usage is straight foward: each time a user navigates to an Islandora Object (whether or not it is located at the 
+default "path/islandora/object/pid"), the request for that URL and the PID of the Object,
 using a custom dimension, is recorded by Matomo.
 
 Collection usage works differently. Each time an object is viewed, a "use" of the collection the Objects is a member of 
@@ -31,14 +31,12 @@ The module also tracks searches against Islandora using Islandora Solr Search, i
 ## Reports
 
 Several Matomo report widgets (Real-time map, Visitor map, Islandora object pages, Islandora collection usage, Searches,
- and Searches returning no results) are available at admin/reports/islandora_matomo_reports to users who have been 
- assigned the "View Islandora Matomo reports" permission. 
+and Searches returning no results) are available at admin/reports/islandora_matomo_reports to users who have been 
+assigned the "View Islandora Matomo reports" permission. 
  
- In order to enable these reports, you must enter your Matomo API key in the admin module's settings form. 
- Data for these reports is from the current day but you also have the option to select a custom range using the provided form.
+In order to enable these reports, you must enter your Matomo API key in the admin module's settings form. 
+Data for these reports is from the current day but you also have the option to select a custom range using the provided form.
  
- This is a proof-of-concept implementation and feedback is welcome.
-
 ## Collection-specific site IDs
 
 This module allows administrators to associate a collection PID with a Matomo site ID, allowing analytics to be broken 
@@ -61,6 +59,8 @@ This feature is not intended to replace the contrib [Matomo Web Analytics](https
 
 * [Islandora](https://github.com/Islandora/islandora)
 * [Islandora Solr](https://github.com/Islandora/islandora_solr_search)
+* [Islandora Scholar](https://github.com/Islandora/islandora_scholar)
+
 * [A Matomo server](https://matomo.org)
 
 ## Configuration
@@ -172,10 +172,40 @@ Now that you have Matomo working you need to setup Islandora to talk and read fr
 
 Visit admin/islandora/tools/matomo to configure this module. 
 
+The following screenshot shows the needed configuration settings
+
+![Setting Users](docs/islandora-matomo-config.jpg)
+
+Each input field has a description that explains its purpose. That values shown here are the most typically used. Just make sure you
+add your own Tokens (copied during the Matomo deployment stage) and that the API endpoint match.
+
+## Binding Drupal users to Metadata Authors
+
+Islandora Matomo allows Readership reports by Author. To allow existing Drupal users to be "connected" to a mention as author on an Digital Object
+and by doing so implement extra functionality in their Scholar Profiles, Drupal needs to know how a given user is know as inside Metadata.
+
+This is setup in each user profile. Go to "People", select a Drupal User, press Edit and fill the right value following ths screenshot as guide
+
+![Setting Users](docs/connect-drupal-user-to-scholar.jpg)
+
+# Blocks
+
+This module provides a group of custom Blocks with Widgets that can be setup in the traditional Drupal 7 way. Each of this
+also allow a by CMODEL filter additional to the normal exclusion/inclusion by path provided by the system.
+
+# Permissions
+
+This module provides a set of permissions. Make sure they match your Statistics display needs.
+
+# Reporting via email
+
+If the reporting via email toggle (see Setup Islandora Matomo Drupal Module ) is activated and the connection between Drupal users and Metadata based users is correct,
+Islandora Matomo will try to send a readership report to each matching Drupal user during the first 5 days of each month. Reports will contain data from the previous month and a link
+to each User's readership report page where that range can be extended to other periods. 
+
 ## Maintainer
 
 * [Diego Pino at Metro.org](https://github.com/DiegoPino)
-
 
 This module was written originally by [Mark Jordan](https://github.com/mjordan) as part of a large migration to 
 Islandora from another repository platform that provided collection-level usage data 
