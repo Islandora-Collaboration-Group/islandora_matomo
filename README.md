@@ -129,7 +129,7 @@ E.g If what you see there is:
 
 Copy only
 
-`01122207a7d6e74c02374edabf15736
+`01122207a7d6e74c02374edabf15736`
 
 This token will be used by the Admin only report and functionality inside Islandora needed for this Module. Since this
 Token will have Write permissions it is recommended to create at least one additional user with only VIEW permissions
