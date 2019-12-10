@@ -76,7 +76,8 @@ function islandora_matomo_usage_access_callback(AbstractObject $object) {
   return islandora_object_access(
       ISLANDORA_VIEW_OBJECTS,
       $object
-    ) && user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION);
+    ) && !array_intersect($object->models, ['islandora:personCModel']) && 
+      user_access(ISLANDORA_MATOMO_ISLANDORA_OBJECT_USAGE_VIEW_PERMISSION);
 }
 
 /**
